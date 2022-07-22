@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<title>eDrum4u Controller</title>
+
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta http-equiv="Content-Security-Policy" content="script-src 'self'">
+
+		<link rel="stylesheet" href="css/bootstrap.min.css">
+		<link rel="stylesheet" href="css/bootstrap-icons.css">
+	</head>
+	<body>
+		<nav class="navbar navbar-expand-sm navbar-dark bg-primary">
+			<div class="container-fluid">
+				<a class="navbar-brand" href="#">
+					&nbsp;
+					<img src="img/drum-kit.png" alt="" width="32" height="32" class="d-inline-block align-text-bottom">
+					&nbsp;
+					eDrum4u Controller
+				</a>
+
+				<div class="nav nav-tabs" id="nav-tab" role="tablist">
+					<button class="nav-link active" id="settings-tab" data-bs-toggle="tab" data-bs-target="#pads" type="button" role="tab" aria-controls="pads" aria-selected="true">Pads</button>
+					<button class="nav-link text-light" id="about-tab" data-bs-toggle="tab" data-bs-target="#about" type="button" role="tab" aria-controls="about" aria-selected="false">About</button>
+				</div>
+			</div>
+		</nav>
+
+		<div class="tab-content p-3" id="nav-tabContent">
+			<div class="tab-pane fade show active" id="pads" role="tabpanel" tabindex="0">
+				<div class="row border-bottom pb-2">
+					<div class="col">
+						<div id="pad-bar" class="btn-group btn-group-sm" role="group">
+						</div>
+					</div>
+					<div class="col pt-1">
+						<div class="float-end">
+							<label class="form-label fw-bold" for="follow-flag">Follow:</label>
+							<input id="follow-flag" class="form-check-input" type="checkbox" value="" checked>
+							&nbsp;&nbsp;
+							<label class="form-label fw-bold" for="monitor-flag">Monitor:</label>
+							<input id="monitor-flag" class="form-check-input" type="checkbox" value="">
+						</div>
+					</div>
+				</div>
+				<div class="row pt-1">
+					<div class="col-4">
+						<label class="form-label fw-bold" for="pad-type">Type:</label>
+						<select id="pad-type" class="form-select">
+						</select>
+					</div>
+					<div class="col-4">
+						<label class="form-label fw-bold" for="pad-name">Name:</label>
+						<input id="pad-name" type="text" class="form-control">
+					</div>
+					<div class="col-4">
+						<label class="form-label fw-bold" for="pad-curve">Curve:</label>
+						<select id="pad-curve" class="form-select">
+						</select>
+					</div>
+				</div>
+				<div class="row pt-1">
+					<div id="pad-inputs" class="col-4">
+						<label class="form-label fw-bold">Inputs:</label>
+						<div class="border p-2">
+							sdfsdf sdf
+						</div>
+					</div>
+					<div id="pad-notes" class="col-4">
+						<label class="form-label fw-bold">Notes:</label>
+						<div class="border p-2">
+							sdfsdf sdf
+						</div>
+					</div>
+					<div id="pad-monitor" class="col-8 d-none">
+						<label class="form-label fw-bold">Monitor:</label>
+						<div class="border p-2">
+							<canvas id="monitor" class="w-100"></canvas>
+						</div>
+					</div>
+					<div id="pad-settings" class="col-4">
+						<label class="form-label fw-bold">Settings:</label>
+						<div class="border p-2">
+							<label for="pad-scan-time" class="form-label small mb-0">Scan time (m/s):</label>
+							<input id="pad-scan-time" type="range" class="form-range" min="1.0" max="5.0" step="0.1">
+							<label for="pad-mask-time" class="form-label small mb-0">Mask time (m/s):</label>
+							<input id="pad-mask-time" type="range" class="form-range" min="1.0" max="20.0" step="0.1">
+							<label for="pad-head-threshold" class="form-label small mb-0">Head threshold:</label>
+							<input id="pad-head-threshold" type="range" class="form-range" min="0" max="127">
+							<label for="pad-head-sensitivity" class="form-label small mb-0">Head sensitivity:</label>
+							<input id="pad-head-sensitivity" type="range" class="form-range" min="0" max="127">
+							<label for="pad-rim-threshold" class="form-label small mb-0">Rim threshold:</label>
+							<input id="pad-rim-threshold" type="range" class="form-range" min="0" max="127">
+							<label for="pad-rim-sensitivity" class="form-label small mb-0">Rim sensitivity:</label>
+							<input id="pad-rim-sensitivity" type="range" class="form-range" min="0" max="127">
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="tab-pane fade" id="about" role="tabpanel" tabindex="1">
+				<form>
+					<h4>About</h4>
+					<div class="form-group row">
+						<label for="about-author" class="col-sm-2 col-form-label">Author</label>
+						<div class="col-sm-10 pb-1">
+							<div class="input-group">
+								<input id="about-author" class="form-control" type="text" readonly value="Johan A. Goossens">
+								<button type="button" class="btn btn-primary open-external" data-link="https://goossens.github.io/">
+									<i class="bi bi-arrow-right-square"></i>
+								</button>
+							</div>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="about-github" class="col-sm-2 col-form-label">Source Code</label>
+						<div class="col-sm-10 pb-1">
+							<div class="input-group">
+								<input id="about-github" class="form-control" type="text" readonly value="https://github.com/goossens/eDrum4u">
+								<button type="button" class="btn btn-primary open-external" data-link="https://github.com/goossens/eDrum4u">
+									<i class="bi bi-arrow-right-square"></i>
+								</button>
+							</div>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="about-github" class="col-sm-2 col-form-label">Documentation</label>
+						<div class="col-sm-10 pb-1">
+							<div class="input-group">
+								<input id="about-github" class="form-control" type="text" readonly value="https://github.com/goossens/eDrum4u">
+								<button type="button" class="btn btn-primary open-external" data-link="https://github.com/goossens/eDrum4u">
+									<i class="bi bi-arrow-right-square"></i>
+								</button>
+							</div>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="about-license" class="col-sm-2 col-form-label">License</label>
+						<div class="col-sm-10 pb-1">
+							<div class="input-group">
+								<input id="about-license" class="form-control" type="text" readonly value="MIT">
+								<button type="button" class="btn btn-primary open-external" data-link="https://github.com/goossens/eDrum4u/blob/main/LICENSE">
+									<i class="bi bi-arrow-right-square"></i>
+								</button>
+							</div>
+						</div>
+					</div>
+					<h4 class="pt-3">Firmware</h4>
+					<div class="form-group row">
+						<label for="firmware-version" class="col-sm-2 col-form-label">Version</label>
+						<div class="col-sm-10 pb-1">
+							<input id="firmware-version" class="form-control" type="text" readonly>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="pad-count" class="col-sm-2 col-form-label">Pads</label>
+						<div class="col-sm-10 pb-1">
+							<input id="pad-count" class="form-control" type="text" readonly>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="sensor-count" class="col-sm-2 col-form-label">Sensors</label>
+						<div class="col-sm-10 pb-1">
+							<input id="sensor-count" class="form-control" type="text" readonly>
+						</div>
+					</div>
+					<h4 class="pt-3">Controller Software</h4>
+					<div class="form-group row">
+						<label for="node-version" class="col-sm-2 col-form-label">NodeJS</label>
+						<div class="col-sm-10 pb-1">
+							<input id="node-version" class="form-control" type="text" readonly>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="chrome-version" class="col-sm-2 col-form-label">Chromium</label>
+						<div class="col-sm-10 pb-1">
+							<input id="chrome-version" class="form-control" type="text" readonly>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="electron-version" class="col-sm-2 col-form-label">Electron</label>
+						<div class="col-sm-10 pb-1">
+							<input id="electron-version" class="form-control" type="text" readonly>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<div class="modal" id="splash" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="splashLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="splashLabel">Waiting for eDrum4u Module...</h5>
+					</div>
+					<div class="modal-body text-center">
+						<img src="img/pads.jpeg" class="rounded" />
+						<p><br>Please connect the eDrum4u module<br>to a USB port on this computer...</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script src="js/bootstrap.bundle.min.js"></script>
+		<script src="js/webmidi.iife.min.js"></script>
+		<script src="js/detectOS.js"></script>
+
+		<script src="app/tools.js"></script>
+		<script src="app/tabs.js"></script>
+		<script src="app/ranges.js"></script>
+		<script src="app/pads.js"></script>
+		<script src="app/monitor.js"></script>
+		<script src="app/midi.js"></script>
+		<script src="app/startup.js"></script>
+
+		</body>
+</html>
