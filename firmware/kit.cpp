@@ -20,8 +20,8 @@
 
 Kit::Kit() {
 	// add pads
-	for (auto i = 0; i < MAX_PADS; i++) {
-		pads[i] = new Pad();
+	for (auto i = 0; i < PAD_COUNT; i++) {
+		pads[i] = new Pad(i);
 	}
 
 	// reload setting from EEPROM
@@ -31,6 +31,7 @@ Kit::Kit() {
 	for (auto i = 0; i < TYPE_COUNT; i++) {
 		types[i] = new Type(i);
 	}
+
 	// add curves
 	for (auto i = 0; i < CURVE_COUNT; i++) {
 		curves[i] = new Curve(i);
@@ -55,7 +56,7 @@ void Kit::process(Context* context) {
 //
 
 void Kit::saveSettings() {
-	for (auto i = 0; i < MAX_PADS; i++) {
+	for (auto i = 0; i < PAD_COUNT; i++) {
 		uint16_t offset = i * MAX_BYTES_PER_PAD;
 		pads[i]->saveSettings(offset);
 	}
@@ -67,7 +68,7 @@ void Kit::saveSettings() {
 //
 
 void Kit::loadSettings() {
-	for (auto i = 0; i < MAX_PADS; i++) {
+	for (auto i = 0; i < PAD_COUNT; i++) {
 		uint16_t offset = i * MAX_BYTES_PER_PAD;
 		pads[i]->loadSettings(offset);
 	}
@@ -85,13 +86,21 @@ void Kit::midiEvent(uint8_t* data, unsigned int size) {
 
 		// send type specifications
 		for (auto i = 0; i < TYPE_COUNT; i++) {
-			types[i]->send();
+			types[i]->sendAsMidi();
 		}
 
 		// send curve specifications
 		for (auto i = 0; i < CURVE_COUNT; i++) {
-			curves[i]->send();
+			curves[i]->sendAsMidi();
 		}
+
+		// send pad configuration
+		for (auto i = 0; i < PAD_COUNT; i++) {
+			pads[i]->sendAsMidi();
+		}
+
+		// we're ready now
+		sendReady();
 	}
 }
 
@@ -102,16 +111,15 @@ void Kit::midiEvent(uint8_t* data, unsigned int size) {
 
 void Kit::sendConfiguration() {
 	// send firmware configuration to controller
-	struct MidiConfigurationMsg {
+	struct {
 		uint8_t start;
-		uint8_t id;
+		uint8_t vendor;
 		uint8_t command;
 		uint8_t versionMajor;
 		uint8_t versionMinor;
 		uint8_t versionPatch;
 		uint8_t pads;
 		uint8_t sensors;
-		uint8_t controls;
 		uint8_t end;
 	} msg = {
 		0xf0,
@@ -120,9 +128,30 @@ void Kit::sendConfiguration() {
 		VERSION_MAJOR,
 		VERSION_MINOR,
 		VERSION_PATCH,
-		MAX_PADS,
+		PAD_COUNT,
 		NUMBER_OF_SENSORS,
-		NUMBER_OF_CONTROLS,
+		0xf7
+	};
+
+	usbMIDI.sendSysEx(sizeof(msg), (uint8_t*) &msg, true);
+}
+
+
+//
+//	Kit::sendReady
+//
+
+void Kit::sendReady() {
+	// send ready event to controller
+	struct {
+		uint8_t start;
+		uint8_t vendor;
+		uint8_t command;
+		uint8_t end;
+	} msg = {
+		0xf0,
+		MIDI_VENDOR_ID,
+		MIDI_SEND_READY,
 		0xf7
 	};
 

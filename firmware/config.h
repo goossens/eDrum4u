@@ -21,14 +21,11 @@
 #define NUMBER_OF_SENSOR_BOARDS 4
 #define NUMBER_OF_SENSORS (NUMBER_OF_SENSOR_BOARDS * 8)
 
-// number of control inputs
-#define NUMBER_OF_CONTROLS 2
-
 // sampling frequency (Fs)
 #define SAMPLING_RATE 10000
 
 // maximum number of pads in kit
-#define MAX_PADS 16
+#define PAD_COUNT 16
 
 // maximum number of bytes stored per pad
 #define MAX_BYTES_PER_PAD 32
@@ -54,5 +51,6 @@ enum {
 	MIDI_SEND_TYPE,
 	MIDI_SEND_CURVE,
 	MIDI_SEND_PAD,
+	MIDI_SEND_READY,
 	MIDI_UPDATE_PAD
 };

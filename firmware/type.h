@@ -26,9 +26,22 @@ enum {
 	TYPE_PD120,
 	TYPE_PD125X,
 	TYPE_VH12,
+	TYPE_CY12H,
 	TYPE_CY12C,
 	TYPE_CY15R,
 	TYPE_COUNT
+};
+
+
+//
+//	Trigger type
+//
+
+enum {
+	SINGLE_ZONE,
+	DUAL_ZONE,
+	TRIPLE_ZONE,
+	HIHAT
 };
 
 
@@ -41,8 +54,8 @@ public:
 	// constructor
 	Type(uint8_t i);
 
-	// send type configuration over midi
-	void send();
+	// send type specification over midi
+	void sendAsMidi();
 
 private:
 	// type ID

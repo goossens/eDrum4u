@@ -238,26 +238,24 @@ Curve::Curve(uint8_t i) {
 
 
 //
-//	Curve::send
+//	Curve::sendAsMidi
 //
 
-void Curve::send() {
+void Curve::sendAsMidi() {
 	const char* name = names[id];
 
-	struct MidiCurveMsg {
+	struct {
 		uint8_t start;
-		uint8_t id;
+		uint8_t vendor;
 		uint8_t command;
 		uint8_t seqno;
-		uint8_t length;
-		uint8_t name[8];
+		uint8_t name[9];
 		uint8_t end;
 	} msg = {
 			0xf0,
 			MIDI_VENDOR_ID,
 			MIDI_SEND_CURVE,
 			id,
-			(uint8_t) strlen(name),
 			{ 0 },
 			0xf7
 	};

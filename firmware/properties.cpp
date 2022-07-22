@@ -26,6 +26,9 @@
 
 Properties::Properties() {
 	type = TYPE_GENERIC;
+	zones = SINGLE_ZONE;
+
+	memset(name, 0, sizeof(name));
 	strcpy((char*) name, "Generic");
 
 	scanTime = 2;
@@ -49,8 +52,11 @@ Properties::Properties() {
 //	Properties::Properties
 //
 
-Properties::Properties(uint8_t t, const char* n, uint8_t st, uint8_t mt, uint8_t rt, uint8_t c, uint8_t hs, uint8_t hy, uint8_t hh, uint8_t hn, uint8_t rs, uint8_t ry, uint8_t rh, uint8_t rn) {
+Properties::Properties(uint8_t t, uint8_t z, const char* n, uint8_t st, uint8_t mt, uint8_t rt, uint8_t c, uint8_t hs, uint8_t hy, uint8_t hh, uint8_t hn, uint8_t rs, uint8_t ry, uint8_t rh, uint8_t rn) {
 	type = t;
+	zones = z;
+
+	memset(name, 0, sizeof(name));
 	strcpy((char*) name, n);
 
 	scanTime = st;
@@ -133,21 +139,21 @@ uint16_t Properties::loadSettings(uint16_t offset) {
 //	Properties::sendAsMidi
 //
 
-void Properties::sendAsMidi(uint8_t command, uint8_t number) {
+void Properties::sendAsMidi(uint8_t command, uint8_t id) {
 	// build message
-	struct MidiPropertiesMsg {
+	struct {
 		uint8_t start;
-		uint8_t id;
+		uint8_t vendor;
 		uint8_t command;
-		uint8_t number;
+		uint8_t id;
 		Properties p;
 		uint8_t end;
 	} msg;
 
 	msg.start = 0xf0;
-	msg.id = MIDI_VENDOR_ID;
+	msg.vendor = MIDI_VENDOR_ID;
 	msg.command = command;
-	msg.number = number;
+	msg.id = id;
 	memcpy(&msg.p, this, sizeof(Properties));
 	msg.end = 0xf7;
 

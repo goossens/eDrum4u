@@ -33,10 +33,10 @@ class Curve {
 public:
 	// constructors
 	Curve();
-	Curve(uint8_t id);
+	Curve(uint8_t vendor);
 
-	// send curve configuration over midi
-	void send();
+	// send curve specification over midi
+	void sendAsMidi();
 
 	// apply curve
 	inline uint8_t apply(uint8_t value) {

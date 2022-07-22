@@ -15,7 +15,7 @@
 struct Properties {
 	// constructors
 	Properties();
-	Properties(uint8_t t, const char* n, uint8_t st, uint8_t mt, uint8_t rt, uint8_t c, uint8_t hs, uint8_t hy, uint8_t hh, uint8_t hn, uint8_t rs, uint8_t ry, uint8_t rh, uint8_t rn);
+	Properties(uint8_t t, uint8_t z, const char* n, uint8_t st, uint8_t mt, uint8_t rt, uint8_t c, uint8_t hs, uint8_t hy, uint8_t hh, uint8_t hn, uint8_t rs, uint8_t ry, uint8_t rh, uint8_t rn);
 
 	// save/load settings to/from EEPROM
 	uint16_t saveSettings(uint16_t offset);
@@ -26,6 +26,7 @@ struct Properties {
 
 	// properties
 	uint8_t type;
+	uint8_t zones;
 	uint8_t name[13];
 
 	uint8_t scanTime;

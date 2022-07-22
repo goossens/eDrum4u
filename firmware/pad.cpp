@@ -34,7 +34,8 @@ enum {
 //	Pad::Pad
 //
 
-Pad::Pad() {
+Pad::Pad(uint8_t i) {
+	id = i;
 	headState = IDLE;
 	curve = Curve(p.curve);
 }
@@ -83,7 +84,7 @@ void Pad::process(Context* context) {
 	} else if (headState == SCANNING) {
 		if (value > headVelocity) {
 			headVelocity = value;
-			headPeakTime = context.now;
+			headPeakTime = context->now;
 		}
 
 		context->monitor->next1(value);
@@ -130,4 +131,14 @@ void Pad::process(Context* context) {
 			context->monitor->end1();
 		}
 	}
+}
+
+
+
+//
+//	Pad::sendAsMidi
+//
+
+void Pad::sendAsMidi() {
+	p.sendAsMidi(MIDI_SEND_PAD, id);
 }

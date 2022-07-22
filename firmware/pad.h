@@ -24,7 +24,7 @@
 class Pad {
 public:
 	// constructor
-	Pad();
+	Pad(uint8_t id);
 
 	// save/load settings to/from EEPROM
 	uint16_t saveSettings(uint16_t offset);
@@ -33,7 +33,13 @@ public:
 	// process next sample
 	void process(Context* context);
 
+	// send pad configuration over midi
+	void sendAsMidi();
+
 private:
+	// pad ID
+	uint8_t id;
+
 	// pad properties
 	Properties p;
 

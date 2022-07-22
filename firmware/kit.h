@@ -42,12 +42,15 @@ public:
 	// send configuration
 	void sendConfiguration();
 
+	// send ready notification
+	void sendReady();
+
 private:
 	// input scanner
 	Scanner* scanner;
 
 	// pads that make up the drum kit
-	Pad* pads[MAX_PADS];
+	Pad* pads[PAD_COUNT];
 
 	// list of type
 	Type* types[TYPE_COUNT];
