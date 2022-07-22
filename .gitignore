@@ -33,7 +33,3 @@
 
 # Node modules
 control/node_modules
-
-# xcode files
-*.pbxuser
-*.xcuserstate
