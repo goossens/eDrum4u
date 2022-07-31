@@ -11,6 +11,7 @@
 
 #include <string.h>
 
+#include <WString.h>
 #include <EEPROM.h>
 #include <usb_midi.h>
 
@@ -52,7 +53,7 @@ Properties::Properties() {
 //	Properties::Properties
 //
 
-Properties::Properties(uint8_t t, uint8_t z, const char* n, uint8_t st, uint8_t mt, uint8_t rt, uint8_t c, uint8_t hs, uint8_t hy, uint8_t hh, uint8_t hn, uint8_t rs, uint8_t ry, uint8_t rh, uint8_t rn) {
+Properties::Properties(int t, int z, const char* n, int st, int mt, int rt, int c, int hs, int hy, int hh, int hn, int rs, int ry, int rh, int rn) {
 	type = t;
 	zones = z;
 
@@ -80,8 +81,9 @@ Properties::Properties(uint8_t t, uint8_t z, const char* n, uint8_t st, uint8_t 
 //	Properties::saveSettings
 //
 
-uint16_t Properties::saveSettings(uint16_t offset) {
+int Properties::saveSettings(int offset) {
 	EEPROM.update(offset++, type);
+	EEPROM.update(offset++, zones);
 
 	for (size_t i = 0; i < sizeof(name); i++) {
 		EEPROM.update(offset++, name[i]);
@@ -105,12 +107,14 @@ uint16_t Properties::saveSettings(uint16_t offset) {
 	return offset;
 }
 
+
 //
 //	Properties::loadSettings
 //
 
-uint16_t Properties::loadSettings(uint16_t offset) {
+int Properties::loadSettings(int offset) {
 	type = EEPROM.read(offset++);
+	zones = EEPROM.read(offset++);
 
 	for (size_t i = 0; i < sizeof(name); i++) {
 		name[i] = EEPROM.read(offset++);
@@ -139,14 +143,33 @@ uint16_t Properties::loadSettings(uint16_t offset) {
 //	Properties::sendAsMidi
 //
 
-void Properties::sendAsMidi(uint8_t command, uint8_t id) {
+void Properties::sendAsMidi(int command, int id) {
 	// build message
 	struct {
 		uint8_t start;
 		uint8_t vendor;
 		uint8_t command;
+
 		uint8_t id;
-		Properties p;
+		uint8_t type;
+		uint8_t zones;
+		char name[13];
+
+		uint8_t scanTime;
+		uint8_t maskTime;
+		uint8_t retriggerTime;
+		uint8_t curve;
+
+		uint8_t headSensor;
+		uint8_t headSensitivity;
+		uint8_t headThreshold;
+		uint8_t headNote;
+
+		uint8_t rimSensor;
+		uint8_t rimSensitivity;
+		uint8_t rimThreshold;
+		uint8_t rimNote;
+
 		uint8_t end;
 	} msg;
 
@@ -154,7 +177,27 @@ void Properties::sendAsMidi(uint8_t command, uint8_t id) {
 	msg.vendor = MIDI_VENDOR_ID;
 	msg.command = command;
 	msg.id = id;
-	memcpy(&msg.p, this, sizeof(Properties));
+
+	msg.type = type;
+	msg.zones = zones;
+	memset(msg.name, 0, sizeof(msg.name));
+	strcpy(msg.name, name);
+
+	msg.scanTime = scanTime;
+	msg.maskTime = maskTime;
+	msg.retriggerTime = retriggerTime;
+	msg.curve = curve;
+
+	msg.headSensor = headSensor;
+	msg.headSensitivity = headSensitivity;
+	msg.headThreshold = headThreshold;
+	msg.headNote = headNote;
+
+	msg.rimSensor = rimSensor;
+	msg.rimSensitivity = rimSensitivity;
+	msg.rimThreshold = rimThreshold;
+	msg.rimNote = rimNote;
+
 	msg.end = 0xf7;
 
 	// send message

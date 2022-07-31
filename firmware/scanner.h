@@ -26,21 +26,32 @@ public:
 	// constructor
 	Scanner();
 
-	// read values for one port from all boards
-	void readOnePort(int port);
+	// determine DC offset
+	void calibrate();
 
 	// read all inputs
 	void read();
 
-	// read one sample
-	inline uint16_t getValue(size_t slot) {
-		return values[slot] >> 3;
+	// get current value
+	inline int getValue(int slot) {
+		return values[slot];
+	}
+
+	// get previous value
+	inline int getPrevious(int slot) {
+		return previous[slot];
 	}
 
 private:
-	// analog/Digital convertor
+	// analog/digital convertor
 	ADC adc;
 
+	// DC offsets
+	int offsets[NUMBER_OF_SENSORS];
+
 	// current values
-	uint16_t values[NUMBER_OF_SENSORS];
+	int values[NUMBER_OF_SENSORS];
+
+	// previous values
+	int previous[NUMBER_OF_SENSORS];
 };

@@ -15,32 +15,32 @@
 struct Properties {
 	// constructors
 	Properties();
-	Properties(uint8_t t, uint8_t z, const char* n, uint8_t st, uint8_t mt, uint8_t rt, uint8_t c, uint8_t hs, uint8_t hy, uint8_t hh, uint8_t hn, uint8_t rs, uint8_t ry, uint8_t rh, uint8_t rn);
+	Properties(int t, int z, const char* n, int st, int mt, int rt, int c, int hs, int hy, int hh, int hn, int rs, int ry, int rh, int rn);
 
 	// save/load settings to/from EEPROM
-	uint16_t saveSettings(uint16_t offset);
-	uint16_t loadSettings(uint16_t offset);
+	int saveSettings(int offset);
+	int loadSettings(int offset);
 
 	// send properties as midi message
-	void sendAsMidi(uint8_t command, uint8_t number);
+	void sendAsMidi(int command, int number);
 
 	// properties
-	uint8_t type;
-	uint8_t zones;
-	uint8_t name[13];
+	int type;
+	int zones;
+	char name[13];
 
-	uint8_t scanTime;
-	uint8_t maskTime;
-	uint8_t retriggerTime;
-	uint8_t curve;
+	int scanTime;
+	int maskTime;
+	int retriggerTime;
+	int curve;
 
-	uint8_t headSensor;
-	uint8_t headSensitivity;
-	uint8_t headThreshold;
-	uint8_t headNote;
+	int headSensor;
+	int headSensitivity;
+	int headThreshold;
+	int headNote;
 
-	uint8_t rimSensor;
-	uint8_t rimSensitivity;
-	uint8_t rimThreshold;
-	uint8_t rimNote;
+	int rimSensor;
+	int rimSensitivity;
+	int rimThreshold;
+	int rimNote;
 };

@@ -198,7 +198,7 @@ Curve::Curve() {
 	translator = linearCurve;
 }
 
-Curve::Curve(uint8_t i) {
+Curve::Curve(int i) {
 	id = i;
 
 	switch (id) {
@@ -242,24 +242,22 @@ Curve::Curve(uint8_t i) {
 //
 
 void Curve::sendAsMidi() {
-	const char* name = names[id];
-
 	struct {
 		uint8_t start;
 		uint8_t vendor;
 		uint8_t command;
 		uint8_t seqno;
-		uint8_t name[9];
+		char name[9];
 		uint8_t end;
 	} msg = {
-			0xf0,
-			MIDI_VENDOR_ID,
-			MIDI_SEND_CURVE,
-			id,
-			{ 0 },
-			0xf7
+		0xf0,
+		MIDI_VENDOR_ID,
+		MIDI_SEND_CURVE,
+		(uint8_t) id,
+		{ 0 },
+		0xf7
 	};
 
-	memcpy(msg.name, name, strlen(name));
+	strcpy(msg.name, names[id]);
 	usbMIDI.sendSysEx(sizeof(msg), (uint8_t*) &msg, true);
 }

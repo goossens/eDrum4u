@@ -9,9 +9,6 @@
 //	Include files
 //
 
-#include <string.h>
-#include <usb_midi.h>
-
 #include "config.h"
 #include "curve.h"
 #include "type.h"
@@ -21,7 +18,7 @@
 //	Type::Type
 //
 
-Type::Type(uint8_t i) : id(i) {
+Type::Type(int i) : id(i) {
 	switch (i) {
 		case TYPE_GENERIC:
 			p = Properties(i, SINGLE_ZONE, "Generic", 2, 10, 40, CURVE_LINEAR, 0, 80, 5, 48, 0, 80, 5, 48);

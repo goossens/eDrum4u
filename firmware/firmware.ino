@@ -82,6 +82,6 @@ void loop() {
 	// process midi inputs
 	usbMIDI.read();
 
-	// send without waiting
+	// flush midi buffer
 	usbMIDI.send_now();
 }

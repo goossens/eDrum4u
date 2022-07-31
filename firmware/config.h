@@ -14,7 +14,7 @@
 
 // version identification
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 0
+#define VERSION_MINOR 1
 #define VERSION_PATCH 1
 
 // number of sensor boards
@@ -52,5 +52,6 @@ enum {
 	MIDI_SEND_CURVE,
 	MIDI_SEND_PAD,
 	MIDI_SEND_READY,
+	MIDI_SEND_MONITOR,
 	MIDI_UPDATE_PAD
 };

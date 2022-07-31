@@ -9,6 +9,12 @@
 
 
 //
+//	Include files
+//
+#include <stdint.h>
+
+
+//
 //	Curve types
 //
 
@@ -33,19 +39,19 @@ class Curve {
 public:
 	// constructors
 	Curve();
-	Curve(uint8_t vendor);
+	Curve(int id);
 
 	// send curve specification over midi
 	void sendAsMidi();
 
 	// apply curve
-	inline uint8_t apply(uint8_t value) {
+	inline int apply(int value) {
 		return translator[value];
 	}
 
 private:
 	// curve identifier
-	uint8_t id;
+	int id;
 
 	// curve tranlation table
 	const uint8_t* translator;

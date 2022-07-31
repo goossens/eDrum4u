@@ -26,7 +26,7 @@ Scanner::Scanner() {
 	CORE_PIN18_PADCONFIG &= mask; // A4
 	CORE_PIN19_PADCONFIG &= mask; // A5
 
-	// configure ADC
+	// configure ADCs
 	adc.adc0->setResolution(10);
 	adc.adc0->setAveraging(1);
 	adc.adc0->setConversionSpeed(ADC_CONVERSION_SPEED::VERY_HIGH_SPEED);
@@ -41,25 +41,31 @@ Scanner::Scanner() {
 	pinMode(MUX_A1, OUTPUT); digitalWriteFast(MUX_A1, LOW);
 	pinMode(MUX_A2, OUTPUT); digitalWriteFast(MUX_A2, LOW);
 	pinMode(MUX_A3, OUTPUT); digitalWriteFast(MUX_A3, LOW);
+
+	// calibrate scanner by determining DC offsets
+	calibrate();
 }
 
 
 //
-//	Scanner::readOnePort
+//	Helper macros for optimize readability and performance
 //
 
-void Scanner::readOnePort(int port) {
-	// read port values from each of the four cards
-	adc.startSynchronizedSingleRead(A0, A1);
-	while (adc.adc0->isConverting() || adc.adc1->isConverting());
-	values[0 + port] = adc.adc0->readSingle();
-	values[8 + port] = adc.adc1->readSingle();
+#define READ_PORT(pin1, pin2, addr1, addr2, port)							\
+	adc.startSynchronizedSingleRead(pin1, pin2);							\
+	while (adc.adc0->isConverting() || adc.adc1->isConverting());			\
+																			\
+	previous[addr1 + port] = values[addr1 + port];							\
+	previous[addr2 + port] = values[addr2 + port];							\
+																			\
+	values[addr1 + port] = adc.adc0->readSingle() - offsets[addr1 + port];	\
+	values[addr2 + port] = adc.adc1->readSingle() - offsets[addr2 + port];
 
-	adc.startSynchronizedSingleRead(A2, A3);
-	while (adc.adc0->isConverting() || adc.adc1->isConverting());
-	values[16 + port] = adc.adc0->readSingle();
-	values[24 + port] = adc.adc1->readSingle();
-}
+#define READ_PORTS(mux, level, port)										\
+	digitalWriteFast(mux, level);											\
+	delayMicroseconds(MUX_SWITCH_DELAY);									\
+	READ_PORT(A0, A1,  0,  8, port)											\
+	READ_PORT(A2, A3, 16, 24, port)
 
 
 //
@@ -69,35 +75,37 @@ void Scanner::readOnePort(int port) {
 void Scanner::read() {
 	// unroll mux loop to minimize address changes
 	// {0, 1, 3, 2, 6, 7, 5, 4}
-	digitalWriteFast(MUX_A1, LOW);
-	delayMicroseconds(MUX_SWITCH_DELAY);
-	readOnePort(0);
+	READ_PORTS(MUX_A1, LOW, 0);
+	READ_PORTS(MUX_A3, HIGH, 1);
+	READ_PORTS(MUX_A2, HIGH, 3);
+	READ_PORTS(MUX_A3, LOW, 2);
+	READ_PORTS(MUX_A1, HIGH, 6);
+	READ_PORTS(MUX_A3, HIGH, 7);
+	READ_PORTS(MUX_A2, LOW, 5);
+	READ_PORTS(MUX_A3, LOW, 4);
+}
 
-	digitalWriteFast(MUX_A3, HIGH);
-	delayMicroseconds(MUX_SWITCH_DELAY);
-	readOnePort(1);
 
-	digitalWriteFast(MUX_A2, HIGH);
-	delayMicroseconds(MUX_SWITCH_DELAY);
-	readOnePort(3);
+//
+//	Scanner::calibrate
+//
 
-	digitalWriteFast(MUX_A3, LOW);
-	delayMicroseconds(MUX_SWITCH_DELAY);
-	readOnePort(2);
+void Scanner::calibrate() {
+	// sum of readings to calculate DC offset
+	int sum[NUMBER_OF_SENSORS] = {0};
 
-	digitalWriteFast(MUX_A1, HIGH);
-	delayMicroseconds(MUX_SWITCH_DELAY);
-	readOnePort(6);
+	// get enough readings to determine offsets
+	for (auto i = 0; i < 1000; i++) {
+		// read current values and update sums
+		read();
 
-	digitalWriteFast(MUX_A3, HIGH);
-	delayMicroseconds(MUX_SWITCH_DELAY);
-	readOnePort(7);
+		for (auto s = 0; s < NUMBER_OF_SENSORS; s++) {
+			sum[s] += values[s];
+		}
+	}
 
-	digitalWriteFast(MUX_A2, LOW);
-	delayMicroseconds(MUX_SWITCH_DELAY);
-	readOnePort(5);
-
-	digitalWriteFast(MUX_A3, LOW);
-	delayMicroseconds(MUX_SWITCH_DELAY);
-	readOnePort(4);
+	// determine offsets by calculating avarage
+	for (auto s = 0; s < NUMBER_OF_SENSORS; s++) {
+		offsets[s] = sum[s] / 1000;
+	}
 }

@@ -13,7 +13,7 @@
 
 
 //
-//	Define the name of the Teensy USB MIDI device showing up in the operating system
+//	Define the name of the Teensy USB MIDI device
 //
 
 struct usb_string_descriptor_struct usb_string_manufacturer_name = {

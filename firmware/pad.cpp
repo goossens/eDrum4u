@@ -9,6 +9,7 @@
 //	Include files
 //
 
+#include <WString.h>
 #include <EEPROM.h>
 #include <usb_midi.h>
 
@@ -34,7 +35,7 @@ enum {
 //	Pad::Pad
 //
 
-Pad::Pad(uint8_t i) {
+Pad::Pad(int i) {
 	id = i;
 	headState = IDLE;
 	curve = Curve(p.curve);
@@ -45,7 +46,7 @@ Pad::Pad(uint8_t i) {
 //	Pad::saveSettings
 //
 
-uint16_t Pad::saveSettings(uint16_t offset) {
+int Pad::saveSettings(int offset) {
 	return p.saveSettings(offset);
 }
 
@@ -54,7 +55,7 @@ uint16_t Pad::saveSettings(uint16_t offset) {
 //	Pad::loadSettings
 //
 
-uint16_t Pad::loadSettings(uint16_t offset) {
+int Pad::loadSettings(int offset) {
 	offset = p.loadSettings(offset);
 	curve =Curve(p.curve);
 	return offset;
@@ -67,37 +68,51 @@ uint16_t Pad::loadSettings(uint16_t offset) {
 
 void Pad::process(Context* context) {
 	// get current value
-	uint8_t value = context->scanner->getValue(p.headSensor);
+	int value = context->scanner->getValue(p.headSensor);
+	int uvalue = abs(value);
 
 	// waiting for a hit
 	if (headState == IDLE) {
-		if (value > p.headThreshold) {
+		if (uvalue > p.headThreshold) {
 			// we have the start of a hit, start scanning phase
-			headVelocity = value;
+			headVelocity = uvalue;
+			headHitTime = context->now;
+			headZeroCrossingTime = 0;
+
 			headState = SCANNING;
 			headStateStartTime = context->now;
 			headStateDuration = p.scanTime * 1000;
-			context->monitor->start1(value);
+			context->monitor->start();
+			context->monitor->probe(uvalue);
 		}
 
 	// handle scanning cycle
 	} else if (headState == SCANNING) {
-		if (value > headVelocity) {
-			headVelocity = value;
+		// detect peak
+		if (uvalue > headVelocity) {
+			headVelocity = uvalue;
 			headPeakTime = context->now;
 		}
 
-		context->monitor->next1(value);
+		// detect zero crossing
+		if (!headZeroCrossingTime && (value * headLast) < 0) {
+			headZeroCrossingTime = context->now;
+		}
+
+		context->monitor->probe(uvalue);
 
 		if (context->now - headStateStartTime > headStateDuration) {
-			// we are done scanning, let's calculate note velocity
+			// we are done scanning, scale velocity into midi range
+			headVelocity >>= 2;
+
+			// calculate note velocity
 			if (headVelocity > p.headSensitivity) {
 				headVelocity = p.headSensitivity;
 			}
 
-			// map input signal to midi scale
-			headVelocity = (((int) (headVelocity - p.headThreshold) * 127)) /
-				((int) (p.headSensitivity - p.headThreshold));
+			// map input signal to full midi range
+			headVelocity = ((headVelocity - p.headThreshold) * 127) /
+				(p.headSensitivity - p.headThreshold);
 
 			// apply curve
 			headVelocity = curve.apply(headVelocity);
@@ -114,7 +129,7 @@ void Pad::process(Context* context) {
 
 	// handle mask phase
 	} else if (headState == MASK) {
-		context->monitor->next1(value);
+		context->monitor->probe(uvalue);
 
 		if (context->now - headStateStartTime > headStateDuration) {
 			headState = RETRIGGER;
@@ -124,15 +139,17 @@ void Pad::process(Context* context) {
 
 	// handle retrigger period
 	} else if (headState == RETRIGGER) {
-		context->monitor->next1(value);
+		context->monitor->probe(uvalue);
 
 		if (context->now - headStateStartTime > headStateDuration) {
 			headState = IDLE;
-			context->monitor->end1();
+			context->monitor->end();
 		}
 	}
-}
 
+	// remember last value
+	headLast = value;
+}
 
 
 //

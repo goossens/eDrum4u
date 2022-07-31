@@ -57,7 +57,7 @@ void Kit::process(Context* context) {
 
 void Kit::saveSettings() {
 	for (auto i = 0; i < PAD_COUNT; i++) {
-		uint16_t offset = i * MAX_BYTES_PER_PAD;
+		int offset = i * MAX_BYTES_PER_PAD;
 		pads[i]->saveSettings(offset);
 	}
 }
@@ -69,7 +69,7 @@ void Kit::saveSettings() {
 
 void Kit::loadSettings() {
 	for (auto i = 0; i < PAD_COUNT; i++) {
-		uint16_t offset = i * MAX_BYTES_PER_PAD;
+		int offset = i * MAX_BYTES_PER_PAD;
 		pads[i]->loadSettings(offset);
 	}
 }

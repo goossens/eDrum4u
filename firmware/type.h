@@ -52,14 +52,14 @@ enum {
 class Type {
 public:
 	// constructor
-	Type(uint8_t i);
+	Type(int id);
 
 	// send type specification over midi
 	void sendAsMidi();
 
 private:
 	// type ID
-	uint8_t id;
+	int id;
 
 	// type defaults
 	Properties p;

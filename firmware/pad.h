@@ -24,11 +24,11 @@
 class Pad {
 public:
 	// constructor
-	Pad(uint8_t id);
+	Pad(int id);
 
 	// save/load settings to/from EEPROM
-	uint16_t saveSettings(uint16_t offset);
-	uint16_t loadSettings(uint16_t offset);
+	int saveSettings(int offset);
+	int loadSettings(int offset);
 
 	// process next sample
 	void process(Context* context);
@@ -38,7 +38,7 @@ public:
 
 private:
 	// pad ID
-	uint8_t id;
+	int id;
 
 	// pad properties
 	Properties p;
@@ -47,10 +47,12 @@ private:
 	Curve curve;
 
 	// scanning parameters
-	uint8_t headState;
+	int headState;
 	unsigned long headStateStartTime;
 	unsigned long headStateDuration;
-	uint8_t headVelocity;
+	int headVelocity;
+	int headLast;
+	unsigned long headHitTime;
 	unsigned long headPeakTime;
-
+	unsigned long headZeroCrossingTime;
 };
