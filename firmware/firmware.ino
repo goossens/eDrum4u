@@ -61,20 +61,19 @@ void setup() {
 
 void loop() {
 	// wait for next scan time
-	int c = 0;
 	while (!ready) {
-		c++;
-		delayMicroseconds(5);
+		delayMicroseconds(4);
 	}
 
-	//Serial.println(c * 5);
 	ready = false;
 
 	// get current time
 	context.now = micros();
 
 	// scan inputs
+	//elapsedMicros time;
 	context.scanner->read();
+	//Serial.println(time);
 
 	// process kit
 	context.kit->process(&context);

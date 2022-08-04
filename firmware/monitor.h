@@ -9,6 +9,13 @@
 
 
 //
+//	Constants
+//
+
+#define MONITOR_BUFFER_SIZE 512
+
+
+//
 //	Monitor class
 //
 
@@ -23,7 +30,7 @@ public:
 
 private:
 	// buffers to store monitored values
-	int buffer1[256];
-	int buffer2[256];
+	int buffer1[MONITOR_BUFFER_SIZE];
+	int buffer2[MONITOR_BUFFER_SIZE];
 	int p;
 };

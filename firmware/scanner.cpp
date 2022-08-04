@@ -55,11 +55,8 @@ Scanner::Scanner() {
 	adc.startSynchronizedSingleRead(pin1, pin2);							\
 	while (adc.adc0->isConverting() || adc.adc1->isConverting());			\
 																			\
-	previous[addr1 + port] = values[addr1 + port];							\
-	previous[addr2 + port] = values[addr2 + port];							\
-																			\
-	values[addr1 + port] = adc.adc0->readSingle() - offsets[addr1 + port];	\
-	values[addr2 + port] = adc.adc1->readSingle() - offsets[addr2 + port];
+	next[addr1 + port] = adc.adc0->readSingle() - offsets[addr1 + port];	\
+	next[addr2 + port] = adc.adc1->readSingle() - offsets[addr2 + port];
 
 #define READ_PORTS(mux, level, port)										\
 	digitalWriteFast(mux, level);											\
@@ -73,6 +70,10 @@ Scanner::Scanner() {
 //
 
 void Scanner::read() {
+	// start next scanning cycle
+	memcpy(previous, current, sizeof(current));
+	memcpy(current, next, sizeof(current));
+
 	// unroll mux loop to minimize address changes
 	// {0, 1, 3, 2, 6, 7, 5, 4}
 	READ_PORTS(MUX_A1, LOW, 0);
@@ -96,11 +97,11 @@ void Scanner::calibrate() {
 
 	// get enough readings to determine offsets
 	for (auto i = 0; i < 1000; i++) {
-		// read current values and update sums
+		// read values and update sums
 		read();
 
 		for (auto s = 0; s < NUMBER_OF_SENSORS; s++) {
-			sum[s] += values[s];
+			sum[s] += next[s];
 		}
 	}
 

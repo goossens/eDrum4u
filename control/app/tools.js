@@ -85,7 +85,7 @@ function hideModal(element) {
 //	Pack object attributes into buffer
 //
 
-function pack(scheme, object) {
+function pack(layout, object) {
 
 }
 
@@ -94,13 +94,13 @@ function pack(scheme, object) {
 //	Unpack buffer into object
 //
 
-function unpack(scheme, buffer) {
+function unpack(layout, buffer) {
 	var result = {};
 	var offset = 0;
 
-	// process all fields defined in scheme
-	for (field in scheme) {
-		var type = scheme[field];
+	// process all fields defined in layout
+	for (field in layout) {
+		var type = layout[field];
 
 		// handle byte fields
 		if (type == "b") {
@@ -121,6 +121,23 @@ function unpack(scheme, buffer) {
 
 			result[field] = string;
 
+		// handle variable length array of 14 bit integers
+		} else if (type[0] == "v") {
+			var sizeMsb = buffer[offset++];
+			var sizelsb = buffer[offset++];
+			var size = (sizeMsb << 7) | sizelsb;
+
+			var values = [];
+
+			for (var i = 0; i < size; i++) {
+				var valueMsb = buffer[offset++];
+				var valuelsb = buffer[offset++];
+				var value = (valueMsb << 7) | valuelsb;
+				values.push(value - 1024);
+			}
+
+			result[field] = values;
+
 		} else {
 			alert("Invalid type in unpack");
 		}
@@ -128,4 +145,29 @@ function unpack(scheme, buffer) {
 
 	// return result
 	return result;
+}
+
+
+//
+//	Scale class
+//
+
+class Scale {
+	constructor(min, max) {
+		this.min = min;
+		this.max = max;
+		this.range = Math.log(max - min + 1);
+	}
+
+	convert(v) {
+		if (v <= this.min) {
+			return 0;
+
+		} else if (v >= this.max) {
+			return 1;
+
+		} else {
+			return Math.log(v - this.min + 1) / this.range;
+		}
+	}
 }

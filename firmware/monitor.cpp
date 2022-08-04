@@ -30,9 +30,7 @@ void Monitor::start() {
 //
 
 void Monitor::end() {
-	for (auto i = 0; i < p; i++) {
-		Serial.println(buffer1[i]);
-	}
+	Serial.println(p);
 
 	// create midi message for probe 1
 	struct {
@@ -40,8 +38,9 @@ void Monitor::end() {
 		uint8_t vendor;
 		uint8_t command;
 		uint8_t probe;
-		uint8_t count;
-		uint8_t values[512];
+		uint8_t sizeMsb;
+		uint8_t sizeLsb;
+		uint8_t values[MONITOR_BUFFER_SIZE * 2];
 		uint8_t end;
 	} msg;
 
@@ -49,18 +48,19 @@ void Monitor::end() {
 	msg.vendor = MIDI_VENDOR_ID;
 	msg.command = MIDI_SEND_MONITOR;
 	msg.probe = 1;
-	msg.count = p;
-	auto v = msg.values;
+	msg.sizeMsb = p >> 7;
+	msg.sizeLsb = p & 0x7f;
+	uint8_t* v = msg.values;
 
 	// make readings positive and split into 7-bit values
 	for (auto i = 0; i < p; i++) {
-		auto offsetValue = buffer1[i] + 2014;
+		auto offsetValue = buffer1[i] + 1024;
 		*v++ = offsetValue >> 7;
 		*v++ = offsetValue & 0x7f;
 	}
 
 	*v++ = 0xf7;
-	auto size = (uint8_t*) v - (uint8_t*) &msg;
+	auto size = v - (uint8_t*) &msg;
 
 	// send message
 	usbMIDI.sendSysEx(size, (uint8_t*) &msg, true);
@@ -87,7 +87,7 @@ void Monitor::end() {
 
 void Monitor::probe(int sample1, int sample2) {
 	// add sample to buffer (but avoid overflow)
-	if (p < 256) {
+	if (p < MONITOR_BUFFER_SIZE) {
 		buffer1[p] = sample1;
 		buffer2[p] = sample2;
 		p++;

@@ -7,17 +7,15 @@
 const ipc = require("electron").ipcRenderer;
 
 window.addEventListener("DOMContentLoaded", function() {
+	// add callback to open web links in external browser for buttons with the "open-external" class
 	document.querySelectorAll(".open-external").forEach(function(button) {
 		button.addEventListener("click", function() {
 			ipc.send("open-external", button.getAttribute("data-link"));
 		});
 	});
 
-	for (const dependency of ["chrome", "node", "electron"]) {
-		const element = document.getElementById(`${dependency}-version`);
-
-		if (element) {
-			element.value = process.versions[dependency];
-		}
+	// get the version numbers of the key packages
+	for (const package of ["chrome", "node", "electron"]) {
+		document.getElementById(`${package}-version`).value = process.versions[package];
 	}
 });

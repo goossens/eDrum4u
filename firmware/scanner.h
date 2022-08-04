@@ -34,7 +34,7 @@ public:
 
 	// get current value
 	inline int getValue(int slot) {
-		return values[slot];
+		return current[slot];
 	}
 
 	// get previous value
@@ -49,9 +49,8 @@ private:
 	// DC offsets
 	int offsets[NUMBER_OF_SENSORS];
 
-	// current values
-	int values[NUMBER_OF_SENSORS];
-
-	// previous values
+	// values over three scanning periods
 	int previous[NUMBER_OF_SENSORS];
+	int current[NUMBER_OF_SENSORS];
+	int next[NUMBER_OF_SENSORS];
 };

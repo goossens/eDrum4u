@@ -67,45 +67,45 @@ int Pad::loadSettings(int offset) {
 //
 
 void Pad::process(Context* context) {
-	// get current value
+	// get current value (-512 to 512)
 	int value = context->scanner->getValue(p.headSensor);
-	int uvalue = abs(value);
+
+	// rectify value and get it into midi velocity range (0 to 127)
+	int velocity = abs(value) >> 2;
 
 	// waiting for a hit
 	if (headState == IDLE) {
-		if (uvalue > p.headThreshold) {
+		if (velocity > p.headThreshold) {
 			// we have the start of a hit, start scanning phase
-			headVelocity = uvalue;
+			headVelocity = velocity;
 			headHitTime = context->now;
+			headPeakTime = context->now;
 			headZeroCrossingTime = 0;
 
 			headState = SCANNING;
 			headStateStartTime = context->now;
 			headStateDuration = p.scanTime * 1000;
 			context->monitor->start();
-			context->monitor->probe(uvalue);
+			context->monitor->probe(value);
 		}
 
 	// handle scanning cycle
 	} else if (headState == SCANNING) {
 		// detect peak
-		if (uvalue > headVelocity) {
-			headVelocity = uvalue;
+		if (velocity > headVelocity) {
+			headVelocity = velocity;
 			headPeakTime = context->now;
 		}
 
 		// detect zero crossing
-		if (!headZeroCrossingTime && (value * headLast) < 0) {
+		if (!headZeroCrossingTime && (value * context->scanner->getPrevious(p.headSensor)) < 0) {
 			headZeroCrossingTime = context->now;
 		}
 
-		context->monitor->probe(uvalue);
+		context->monitor->probe(value);
 
 		if (context->now - headStateStartTime > headStateDuration) {
-			// we are done scanning, scale velocity into midi range
-			headVelocity >>= 2;
-
-			// calculate note velocity
+			// limit velocity to sensitivity (if required)
 			if (headVelocity > p.headSensitivity) {
 				headVelocity = p.headSensitivity;
 			}
@@ -129,7 +129,7 @@ void Pad::process(Context* context) {
 
 	// handle mask phase
 	} else if (headState == MASK) {
-		context->monitor->probe(uvalue);
+		context->monitor->probe(value);
 
 		if (context->now - headStateStartTime > headStateDuration) {
 			headState = RETRIGGER;
@@ -139,16 +139,13 @@ void Pad::process(Context* context) {
 
 	// handle retrigger period
 	} else if (headState == RETRIGGER) {
-		context->monitor->probe(uvalue);
+		context->monitor->probe(value);
 
 		if (context->now - headStateStartTime > headStateDuration) {
 			headState = IDLE;
 			context->monitor->end();
 		}
 	}
-
-	// remember last value
-	headLast = value;
 }
 
 

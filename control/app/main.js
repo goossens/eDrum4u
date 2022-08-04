@@ -6,9 +6,11 @@
 
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
-const { shell } = require('electron')
+const { shell } = require("electron");
 
+// define app startup actions
 app.whenReady().then(function() {
+	// create a new window
 	var window = new BrowserWindow({
 		width: 1024,
 		height: 768,
@@ -17,8 +19,10 @@ app.whenReady().then(function() {
 		}
 	});
 
+	// load controller app
 	window.loadFile("index.html");
 
+	// open url in external browser (counterpart is in preload.js)
 	ipcMain.on("open-external", function(event, url) {
 		shell.openExternal(url);
 	});

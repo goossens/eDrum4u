@@ -32,19 +32,19 @@ Properties::Properties() {
 	memset(name, 0, sizeof(name));
 	strcpy((char*) name, "Generic");
 
-	scanTime = 2;
-	maskTime = 10;
+	scanTime = 3;
+	maskTime = 5;
 	retriggerTime = 40;
 	curve = CURVE_LOUD1;
 
 	headSensor = 0;
 	headSensitivity = 80;
-	headThreshold = 5;
+	headThreshold = 8;
 	headNote = 48;
 
 	rimSensor = 0;
 	rimSensitivity = 80;
-	rimThreshold = 5;
+	rimThreshold = 10;
 	rimNote = 48;
 }
 

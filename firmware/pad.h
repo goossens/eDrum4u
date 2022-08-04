@@ -48,10 +48,9 @@ private:
 
 	// scanning parameters
 	int headState;
+	int headVelocity;
 	unsigned long headStateStartTime;
 	unsigned long headStateDuration;
-	int headVelocity;
-	int headLast;
 	unsigned long headHitTime;
 	unsigned long headPeakTime;
 	unsigned long headZeroCrossingTime;

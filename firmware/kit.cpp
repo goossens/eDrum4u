@@ -118,6 +118,7 @@ void Kit::sendConfiguration() {
 		uint8_t versionMajor;
 		uint8_t versionMinor;
 		uint8_t versionPatch;
+		uint8_t samplingRate;
 		uint8_t pads;
 		uint8_t sensors;
 		uint8_t end;
@@ -128,6 +129,7 @@ void Kit::sendConfiguration() {
 		VERSION_MAJOR,
 		VERSION_MINOR,
 		VERSION_PATCH,
+		SAMPLING_RATE / 1000,
 		PAD_COUNT,
 		NUMBER_OF_SENSORS,
 		0xf7
