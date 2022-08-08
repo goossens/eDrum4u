@@ -11,11 +11,31 @@
 
 class Kit {
 	constructor(monitor) {
-		// track the monitor object
-		this.monitor = monitor;
+		this.monitor = new Monitor();
 
 		// create an empty kit
 		this.clear();
+	}
+
+	// clear the kit
+	clear() {
+		// remove all information
+		this.types = [];
+		this.curves = [];
+		this.pads = [];
+
+		// clear the UI
+		removeAllChildren("pad-bar");
+		removeAllChildren("pad-type");
+		removeAllChildren("pad-curve");
+
+		// clear the monitor
+		this.monitor.clear();
+	}
+
+	// specify sampling rate
+	setSamplingRate(samplingRate) {
+		this.monitor.setSamplingRate(samplingRate);
 	}
 
 	// add a predefined pad type
@@ -52,38 +72,36 @@ class Kit {
 		// add pad button to UI
 		const bar = document.getElementById("pad-bar");
 		const pd = bar.appendChild(document.createElement("input"));
+		pd.setAttribute("data-id", pad.id);
 		pd.setAttribute("id", `pad${pad.id}`);
 		pd.setAttribute("type", "radio");
 		pd.setAttribute("name", "pad-selector");
 		pd.setAttribute("class", "btn-check");
 		pd.checked = pad.id == 0;
 
+		// add callback to activate pad
+		pd.addEventListener("change", function(event) {
+			// switch to selected pad
+			var pad = this.pads[event.target.getAttribute("data-id")];
+			pad.activate();
+			this.monitor.setPad(pad);
+		}.bind(this));
+
+		// add label for pad
 		var label = bar.appendChild(document.createElement("label"));
 		label.setAttribute("for", `pad${pad.id}`);
 		label.setAttribute("class", "btn btn-outline-primary");
 		label.appendChild(document.createTextNode(`${pad.id + 1}`));
+
+		// activate pad if it's the first one
+		if (this.pads.length == 1) {
+			pad.activate();
+			this.monitor.setPad(pad);
+		}
 	}
 
-	// activate pad by sequence number
-	activatePad(seqno) {
-		// gt pad object
-		var pad = this.pads[seqno];
-
-		// activate it and tell monitor
-		pad.activate();
-		this.monitor.setPad(pad);
-	}
-
-	// clear the kit
-	clear() {
-		// remove all information
-		this.types = [];
-		this.curves = [];
-		this.pads = [];
-
-		// clear the UI
-		removeAllChildren("pad-bar");
-		removeAllChildren("pad-type");
-		removeAllChildren("pad-curve");
+	// handle a new monitor signal
+	handleMonitor(probe, values) {
+			this.monitor.setProbe(probe, values);
 	}
 }

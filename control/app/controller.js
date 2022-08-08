@@ -39,9 +39,8 @@ class Controller {
 			this.setupTabs();
 			this.setupRanges();
 
-			// create required objects
-			this.monitor = new Monitor();
-			this.kit = new Kit(this.monitor);
+			// create a new kit object
+			this.kit = new Kit();
 
 			// start midi engine
 			this.setupMidi();
@@ -131,7 +130,6 @@ class Controller {
 		if (event.port.name == "eDrum4u") {
 			// diasble tool by showing splash screen
 			if (this.midiIn && this.midiOut) {
-				this.monitor.clear();
 				this.kit.clear();
 				showModal("splash");
 			}
@@ -173,15 +171,12 @@ class Controller {
 					this.kit.addPad(new Pad(unpack(midiPropertiesLayout, msg)));
 
 				} else if (header.command == MIDI_SEND_READY) {
-					// activate the first pad
-					this.kit.activatePad(0);
-
 					// now hide the splash screen
 					hideModal("splash");
 
 				} else if (header.command == MIDI_SEND_MONITOR) {
 					var message = unpack(midiMonitorLayout, msg);
-					this.monitor.setProbe(message.probe, message.values);
+					this.kit.handleMonitor(message.probe, message.values);
 				}
 			}
 		}
@@ -206,8 +201,8 @@ class Controller {
 			document.getElementById("sensor-count").value = msg.sensors;
 			document.getElementById("sampling-rate").value = msg.samplingRate * 1000;
 
-			// pass sampling rate to monitor
-			this.monitor.setSamplingRate(msg.samplingRate);
+			// pass sampling rate to kit
+			this.kit.setSamplingRate(msg.samplingRate);
 		}
 	}
 }

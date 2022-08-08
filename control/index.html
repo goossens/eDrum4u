@@ -21,13 +21,17 @@
 				</a>
 
 				<div class="nav nav-tabs" id="nav-tab" role="tablist">
-					<button class="nav-link active" id="settings-tab" data-bs-toggle="tab" data-bs-target="#pads" type="button" role="tab" aria-controls="pads" aria-selected="true">Pads</button>
+					<button class="nav-link text-light" id="kit-tab" data-bs-toggle="tab" data-bs-target="#kit" type="button" role="tab" aria-controls="kit" aria-selected="false">Kit</button>
+					<button class="nav-link active" id="pads-tab" data-bs-toggle="tab" data-bs-target="#pads" type="button" role="tab" aria-controls="pads" aria-selected="true">Pads</button>
 					<button class="nav-link text-light" id="about-tab" data-bs-toggle="tab" data-bs-target="#about" type="button" role="tab" aria-controls="about" aria-selected="false">About</button>
 				</div>
 			</div>
 		</nav>
 
 		<div class="tab-content p-3" id="nav-tabContent">
+			<div class="tab-pane fade" id="kit" role="tabpanel" tabindex="0">
+			</div>
+
 			<div class="tab-pane fade show active" id="pads" role="tabpanel" tabindex="0">
 				<div class="row border-bottom pb-2">
 					<div class="col">
@@ -101,7 +105,7 @@
 				</div>
 			</div>
 
-			<div class="tab-pane fade" id="about" role="tabpanel" tabindex="1">
+			<div class="tab-pane fade" id="about" role="tabpanel" tabindex="2">
 				<form>
 					<h4>About</h4>
 					<div class="form-group row">

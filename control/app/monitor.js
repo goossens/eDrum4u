@@ -52,6 +52,17 @@ class Monitor {
 		}.bind(this));
 	}
 
+	// clear monitor
+	clear() {
+		// delete information
+		delete this.probe1;
+		delete this.probe2;
+		delete this.pad;
+
+		// refresh screen
+		this.render();
+	}
+
 	// called when monitor becomes vissible or window size changes
 	resize() {
 		// adjust vertical size
@@ -225,7 +236,6 @@ class Monitor {
 		this.samplingRate = samplingRate;
 	}
 
-
 	// switch to specified path
 	setPad(pad) {
 		// remember pad to track
@@ -250,27 +260,4 @@ class Monitor {
 		// refresh screen
 		this.render();
 	}
-
-	// clear monitor
-	clear() {
-		// delete information
-		delete this.probe1;
-		delete this.probe2;
-		delete this.pad;
-
-		// refresh screen
-		this.render();
-	}
-}
-
-
-//
-//	Initialize monitor system by creating a monitor class instance
-//
-
-var monitor;
-
-function setupMonitor() {
-	// create monitor
-	monitor = new Monitor(document.getElementById("monitor"));
 }
