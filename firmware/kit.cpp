@@ -44,6 +44,9 @@ Kit::Kit() {
 //
 
 void Kit::process(Context* context) {
+	// put monitoring data in context
+	context->monitorPad = monitorPad;
+
 	// process all pads
 	for (auto i = 0; i < 1; i++) {
 		pads[i]->process(context);
@@ -101,6 +104,10 @@ void Kit::midiEvent(uint8_t* data, unsigned int size) {
 
 		// we're ready now
 		sendReady();
+
+	} else if (data[2] == MIDI_REQUEST_MONITOR) {
+		// handle monitor requests
+		monitorPad = data[3];
 	}
 }
 

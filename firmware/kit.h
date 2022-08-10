@@ -57,4 +57,7 @@ private:
 
 	// list of curves
 	Curve* curves[CURVE_COUNT];
+
+	// monitoring properties
+	int monitorPad = PAD_COUNT + 1;
 };

@@ -38,7 +38,7 @@
 // mux delay in microseconds
 #define MUX_SWITCH_DELAY 1
 
-// midi vedor ID
+// midi vendor ID
 #define MIDI_VENDOR_ID 0x66
 
 // midi channel
@@ -52,6 +52,7 @@ enum {
 	MIDI_SEND_CURVE,
 	MIDI_SEND_PAD,
 	MIDI_SEND_READY,
+	MIDI_REQUEST_MONITOR,
 	MIDI_SEND_MONITOR,
 	MIDI_UPDATE_PAD
 };

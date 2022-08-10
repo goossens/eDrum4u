@@ -22,8 +22,16 @@ struct Monitor;
 //
 
 struct Context {
+	// current timestamp in nanoseconds
 	unsigned long now;
+
+	// the kit
 	Kit* kit;
+
+	// the trigger scanner
 	Scanner* scanner;
+
+	// the monitor and its parameters
 	Monitor* monitor;
+	int monitorPad;
 };

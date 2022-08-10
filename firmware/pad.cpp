@@ -70,13 +70,13 @@ void Pad::process(Context* context) {
 	// get current value (-512 to 512)
 	int value = context->scanner->getValue(p.headSensor);
 
-	// rectify value and get it into midi velocity range (0 to 127)
+	// rectify value and get it into midi range (0 to 127)
 	int velocity = abs(value) >> 2;
 
 	// waiting for a hit
 	if (headState == IDLE) {
 		if (velocity > p.headThreshold) {
-			// we have the start of a hit, start scanning phase
+			// we have the start of a hit, start the scanning phase
 			headVelocity = velocity;
 			headHitTime = context->now;
 			headPeakTime = context->now;
@@ -85,6 +85,8 @@ void Pad::process(Context* context) {
 			headState = SCANNING;
 			headStateStartTime = context->now;
 			headStateDuration = p.scanTime * 1000;
+
+			// if we are the target of monitoring, start that as well
 			context->monitor->start();
 			context->monitor->probe(value);
 		}
@@ -102,6 +104,7 @@ void Pad::process(Context* context) {
 			headZeroCrossingTime = context->now;
 		}
 
+		// handle monitoring requirements
 		context->monitor->probe(value);
 
 		if (context->now - headStateStartTime > headStateDuration) {
