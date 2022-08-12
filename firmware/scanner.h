@@ -33,13 +33,13 @@ public:
 	void read();
 
 	// get current value
-	inline int getValue(int slot) {
-		return current[slot];
+	inline int getValue(int sensor) {
+		return current[sensor - 1];
 	}
 
 	// get previous value
-	inline int getPrevious(int slot) {
-		return previous[slot];
+	inline int getPrevious(int sensor) {
+		return previous[sensor - 1];
 	}
 
 private:

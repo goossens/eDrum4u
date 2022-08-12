@@ -37,12 +37,12 @@ Properties::Properties() {
 	retriggerTime = 40;
 	curve = CURVE_LOUD1;
 
-	headSensor = 0;
+	headSensor = 1;
 	headSensitivity = 80;
 	headThreshold = 8;
 	headNote = 48;
 
-	rimSensor = 0;
+	rimSensor = 2;
 	rimSensitivity = 80;
 	rimThreshold = 10;
 	rimNote = 48;

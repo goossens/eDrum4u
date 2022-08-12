@@ -163,7 +163,7 @@ class Monitor {
 		var [x, y] = this.convert(0, values[0] / 4.0);
 		this.ctx.moveTo(x, y);
 
-		for (var i = 1; i <= values.length; i++) {
+		for (var i = 1; i < values.length; i++) {
 			[x, y] = this.convert(i / this.samplingRate, values[i] / 4.0);
 			this.ctx.lineTo(x, y);
 		}

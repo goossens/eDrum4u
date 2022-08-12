@@ -28,8 +28,9 @@ class Controller {
 			this.setupTabs();
 			this.setupRanges();
 
-			// create a new kit object
+			// create new objects
 			this.kit = new Kit();
+			this.oscilloscope = new Oscilloscope();
 
 			// start midi engine
 			this.setupMidi();
@@ -45,6 +46,15 @@ class Controller {
 				event.relatedTarget.classList.add("text-light");
 			});
 		});
+
+		// capture tab events
+		document.getElementById("scope-tab").addEventListener("shown.bs.tab", function(event) {
+			this.oscilloscope.show();
+		}.bind(this), true);
+
+		document.getElementById("scope-tab").addEventListener("hidden.bs.tab", function(event) {
+			this.oscilloscope.hide();
+		}.bind(this), true);
 	}
 
 	// configure range tooltips
@@ -120,6 +130,7 @@ class Controller {
 			// diasble tool by showing splash screen
 			if (this.midiIn && this.midiOut) {
 				this.kit.clear();
+				this.oscilloscope.clear();
 				showModal("splash");
 			}
 
@@ -141,31 +152,35 @@ class Controller {
 		var header = unpack(midiHeaderLayout, msg);
 
 		if (header.start == 0xf0 && header.vendor == MIDI_VENDOR_ID) {
-			if (header.command == MIDI_SEND_CONFIG) {
+			if (header.command == MIDI_RECEIVE_CONFIG) {
 				// update the about tab
 				this.updateConfiguration(unpack(midiConfigurationLayout, msg));
 
 		// ignore other messages if versions don't match
 		} else if (this.versionMatch) {
-				if (header.command == MIDI_SEND_TYPE) {
+				if (header.command == MIDI_RECEIVE_TYPE) {
 					// add a pad type to the list
 					this.kit.addPadType(unpack(midiPropertiesLayout, msg));
 
-				} else if (header.command == MIDI_SEND_CURVE) {
+				} else if (header.command == MIDI_RECEIVE_CURVE) {
 					// add a curve type to the list
 					this.kit.addPadCurve(unpack(midiCurveLayout, msg));
 
-				} else if (header.command == MIDI_SEND_PAD) {
+				} else if (header.command == MIDI_RECEIVE_PAD) {
 					// add a pad definition
 					this.kit.addPad(new Pad(unpack(midiPropertiesLayout, msg)));
 
-				} else if (header.command == MIDI_SEND_READY) {
+				} else if (header.command == MIDI_RECEIVE_READY) {
 					// now hide the splash screen
 					hideModal("splash");
 
-				} else if (header.command == MIDI_SEND_MONITOR) {
+				} else if (header.command == MIDI_RECEIVE_MONITOR) {
 					var message = unpack(midiMonitorLayout, msg);
 					this.kit.handleMonitor(message.probe, message.values);
+
+				} else if (header.command == MIDI_RECEIVE_OSCILLOSCOPE) {
+					var message = unpack(midiOscilloscopeLayout, msg);
+					this.oscilloscope.setProbe(message.probe, message.values);
 				}
 			}
 		}
@@ -190,8 +205,12 @@ class Controller {
 			document.getElementById("sensor-count").value = msg.sensors;
 			document.getElementById("sampling-rate").value = msg.samplingRate * 1000;
 
-			// pass sampling rate to kit
+			// pass information to kit and oscilloscope
 			this.kit.setSamplingRate(msg.samplingRate);
+
+			this.oscilloscope.setMidi(this.midiOut);
+			this.oscilloscope.setSamplingRate(msg.samplingRate);
+			this.oscilloscope.setSensorCount(msg.sensors);
 		}
 	}
 }

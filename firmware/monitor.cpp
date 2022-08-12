@@ -30,8 +30,6 @@ void Monitor::start() {
 //
 
 void Monitor::end() {
-	Serial.println(p);
-
 	// create midi message for probe 1
 	struct {
 		uint8_t start;

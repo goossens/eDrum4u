@@ -69,6 +69,19 @@ function getValue(element) {
 
 
 //
+//	Add an option to a selector
+//
+
+function addSelectorOption(element, value, name) {
+	var selector = document.getElementById(element);
+	const opt = document.createElement("option");
+	opt.value = value;
+	opt.innerHTML = name;
+	selector.appendChild(opt);
+}
+
+
+//
 //	Show/hide modal dialog
 //
 

@@ -15,6 +15,7 @@
 #include "context.h"
 #include "kit.h"
 #include "monitor.h"
+#include "oscilloscope.h"
 #include "scanner.h"
 
 
@@ -26,6 +27,7 @@ static IntervalTimer timer;
 static volatile bool ready = true;
 
 static Context context;
+static Oscilloscope oscilloscope;
 
 
 //
@@ -33,9 +35,6 @@ static Context context;
 //
 
 void setup() {
-	// setup console
-	Serial.begin(115200);
-
 	// initialize scan timer
 	timer.begin([]() {
 		ready = true;
@@ -49,7 +48,14 @@ void setup() {
 	// setup midi event handling
 	usbMIDI.setHandleSystemExclusive([](uint8_t* data, unsigned int size) {
 		if (data[0] == 0xf0 && data[1] == MIDI_VENDOR_ID) {
-			context.kit->midiEvent(data, size);
+			// handle oscilloscope requests
+			if (data[2] == MIDI_REQUEST_OSCILLOSCOPE) {
+				oscilloscope.midiEvent(data, size);
+
+			} else {
+				// give message to kit
+				context.kit->midiEvent(data, size);
+			}
 		}
 	});
 }
@@ -70,17 +76,14 @@ void loop() {
 	// get current time
 	context.now = micros();
 
-	// scan inputs
+	// scan inputs and process them
 	//elapsedMicros time;
-	context.scanner->read();
 	//Serial.println(time);
-
-	// process kit
+	context.scanner->read();
 	context.kit->process(&context);
+	oscilloscope.process(&context);
 
 	// process midi inputs
 	usbMIDI.read();
-
-	// flush midi buffer
 	usbMIDI.send_now();
 }

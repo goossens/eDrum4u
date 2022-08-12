@@ -9,10 +9,17 @@
 
 
 //
+//	Include files
+//
+
+#include "config.h"
+
+
+//
 //	Constants
 //
 
-#define MONITOR_BUFFER_SIZE 512
+#define MONITOR_BUFFER_SIZE (SAMPLING_RATE / 1000 * 100)
 
 
 //

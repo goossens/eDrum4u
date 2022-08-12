@@ -38,30 +38,22 @@ class Kit {
 		this.monitor.setSamplingRate(samplingRate);
 	}
 
+	// specify sensor count
+	setSensorCount(sensors) {
+	}
+
 	// add a predefined pad type
 	addPadType(type) {
-		// track new type
+		// track new type and add it to UI
 		this.types.push(type);
-
-		// add type to UI
-		const select = document.getElementById("pad-type");
-		const opt = document.createElement("option");
-		opt.value = type.id;
-		opt.innerHTML = type.name;
-		select.appendChild(opt);
+		addSelectorOption("pad-type", type.id, type.name);
 	}
 
 	// add a new velocity curve
 	addPadCurve(curve) {
-		// track new curve
+		// track new curve and add it to UI
 		this.curves.push(curve);
-
-		// add curve to UI
-		const select = document.getElementById("pad-curve");
-		const opt = document.createElement("option");
-		opt.value = curve.id;
-		opt.innerHTML = curve.name;
-		select.appendChild(opt);
+		addSelectorOption("pad-curve", curve.id, curve.name);
 	}
 
 	// add a new pad to the kit based on provided properties
