@@ -28,16 +28,27 @@
 
 class Monitor {
 public:
-	// control sessions
-	void start();
-	void end();
+	// process midi events
+	void midiEvent(uint8_t* data, unsigned int size);
 
-	// probe
-	void probe(int sample1, int sample2=0);
+	// sampling sessions
+	void start(int pad, int channels);
+	void sample(int pad, int sample1, int sample2=0, int sample3=0);
+	void end(int pad);
 
 private:
+	// send data to control app
+	void sendData(int channel);
+
+	// flags
+	int active = false;
+	int capturing = false;
+
+	// pad we are tracking and number of channels
+	int pad = 0;
+	int channels = 0;
+
 	// buffers to store monitored values
-	int buffer1[MONITOR_BUFFER_SIZE];
-	int buffer2[MONITOR_BUFFER_SIZE];
-	int p;
+	int buffer[3][MONITOR_BUFFER_SIZE];
+	int p = 0;
 };

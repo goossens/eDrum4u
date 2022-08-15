@@ -90,7 +90,8 @@ const midiMonitorLayout = {
 	start: "b",
 	vendor: "b",
 	command: "b",
-	probe: "b",
+	pad: "b",
+	channel: "b",
 	values: "v"
 };
 

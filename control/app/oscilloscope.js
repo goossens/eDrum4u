@@ -24,7 +24,7 @@ class Oscilloscope {
 		this.probes = [0, 0, 0, 0];
 		this.values = [[], [], [], []];
 		this.colors = ["#00f", "#0f0", "#f00", "#000"];
-		this.scale = new Scale(0, SCOPE_HSCALE);
+		this.hscale = new Scale(0, SCOPE_HSCALE);
 
 		// track element and graphical context
 		this.element = document.getElementById("oscilloscope");
@@ -74,7 +74,7 @@ class Oscilloscope {
 		}
 	}
 
-	// called when monitor becomes vissible or window size changes
+	// called when monitor becomes visible or window changes size
 	resize() {
 		// adjust vertical size
 		this.margin = 10;
@@ -141,7 +141,7 @@ class Oscilloscope {
 	// convert coordinates to screen space
 	convert(x, y) {
 		return [
-			this.margin + this.scale.convert(x) * this.width,
+			this.margin + this.hscale.convert(x) * this.width,
 			this.margin + this.height - y * this.height / SCOPE_VSCALE
 		];
 	}
@@ -239,9 +239,7 @@ class Oscilloscope {
 		this.text("0 ms", 0.1, -SCOPE_VSCALE + 10, 12, "#080");
 
 		for (var label of [1, 2, 3, 5, 7, 10, 20, 30, 50, 70, 100]) {
-			if (i <= SCOPE_HSCALE) {
-				this.text(label, label, -SCOPE_VSCALE + 10, 12, "#080");
-			}
+			this.text(label, label, -SCOPE_VSCALE + 10, 12, "#080");
 		}
 
 		// render probes (if required)

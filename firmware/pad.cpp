@@ -67,10 +67,8 @@ int Pad::loadSettings(int offset) {
 //
 
 void Pad::process(Context* context) {
-	// get current value (-512 to 512)
+	// get current value (-512 to 512), rectify it and get it to midi range (0 to 127)
 	int value = context->scanner->getValue(p.headSensor);
-
-	// rectify value and get it into midi range (0 to 127)
 	int velocity = abs(value) >> 2;
 
 	// waiting for a hit
@@ -87,8 +85,8 @@ void Pad::process(Context* context) {
 			headStateDuration = p.scanTime * 1000;
 
 			// if we are the target of monitoring, start that as well
-			context->monitor->start();
-			context->monitor->probe(value);
+			context->monitor->start(id, 1);
+			context->monitor->sample(id, velocity);
 		}
 
 	// handle scanning cycle
@@ -105,7 +103,7 @@ void Pad::process(Context* context) {
 		}
 
 		// handle monitoring requirements
-		context->monitor->probe(value);
+		context->monitor->sample(id, velocity);
 
 		if (context->now - headStateStartTime > headStateDuration) {
 			// limit velocity to sensitivity (if required)
@@ -132,7 +130,7 @@ void Pad::process(Context* context) {
 
 	// handle mask phase
 	} else if (headState == MASK) {
-		context->monitor->probe(value);
+		context->monitor->sample(id, velocity);
 
 		if (context->now - headStateStartTime > headStateDuration) {
 			headState = RETRIGGER;
@@ -142,11 +140,11 @@ void Pad::process(Context* context) {
 
 	// handle retrigger period
 	} else if (headState == RETRIGGER) {
-		context->monitor->probe(value);
+		context->monitor->sample(id, velocity);
 
 		if (context->now - headStateStartTime > headStateDuration) {
 			headState = IDLE;
-			context->monitor->end();
+			context->monitor->end(id);
 		}
 	}
 }

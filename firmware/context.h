@@ -28,10 +28,9 @@ struct Context {
 	// the kit
 	Kit* kit;
 
-	// the trigger scanner
+	// the seonsor scanner
 	Scanner* scanner;
 
-	// the monitor and its parameters
+	// the monitor
 	Monitor* monitor;
-	int monitorPad;
 };

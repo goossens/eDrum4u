@@ -38,8 +38,8 @@ public:
 	void process(Context* context);
 
 private:
-	// send probe data to console
-	void sendProbeData(int probe);
+	// send probe data to control app
+	void sendData(int probe);
 
 	// flags
 	int active = false;

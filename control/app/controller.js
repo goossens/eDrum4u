@@ -29,8 +29,9 @@ class Controller {
 			this.setupRanges();
 
 			// create new objects
-			this.kit = new Kit();
 			this.oscilloscope = new Oscilloscope();
+			this.monitor = new Monitor();
+			this.kit = new Kit(this.monitor);
 
 			// start midi engine
 			this.setupMidi();
@@ -130,6 +131,7 @@ class Controller {
 			// diasble tool by showing splash screen
 			if (this.midiIn && this.midiOut) {
 				this.kit.clear();
+				this.monitor.clear();
 				this.oscilloscope.clear();
 				showModal("splash");
 			}
@@ -156,8 +158,8 @@ class Controller {
 				// update the about tab
 				this.updateConfiguration(unpack(midiConfigurationLayout, msg));
 
-		// ignore other messages if versions don't match
-		} else if (this.versionMatch) {
+			// ignore other messages if versions don't match
+			} else if (this.versionMatch) {
 				if (header.command == MIDI_RECEIVE_TYPE) {
 					// add a pad type to the list
 					this.kit.addPadType(unpack(midiPropertiesLayout, msg));
@@ -176,7 +178,7 @@ class Controller {
 
 				} else if (header.command == MIDI_RECEIVE_MONITOR) {
 					var message = unpack(midiMonitorLayout, msg);
-					this.kit.handleMonitor(message.probe, message.values);
+					this.monitor.setChannel(message.channel, message.values);
 
 				} else if (header.command == MIDI_RECEIVE_OSCILLOSCOPE) {
 					var message = unpack(midiOscilloscopeLayout, msg);
@@ -205,8 +207,11 @@ class Controller {
 			document.getElementById("sensor-count").value = msg.sensors;
 			document.getElementById("sampling-rate").value = msg.samplingRate * 1000;
 
-			// pass information to kit and oscilloscope
-			this.kit.setSamplingRate(msg.samplingRate);
+			// pass information to kit, monitor and oscilloscope
+			this.kit.setSensorCount(msg.sensors);
+
+			this.monitor.setMidi(this.midiOut);
+			this.monitor.setSamplingRate(msg.samplingRate);
 
 			this.oscilloscope.setMidi(this.midiOut);
 			this.oscilloscope.setSamplingRate(msg.samplingRate);

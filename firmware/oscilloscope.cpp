@@ -14,7 +14,7 @@
 
 
 //
-//	Oscilloscope::set
+//	Oscilloscope::midiEvent
 //
 
 void Oscilloscope::midiEvent(uint8_t* data, unsigned int size) {
@@ -51,7 +51,7 @@ void Oscilloscope::process(Context* context) {
 		if (++p == OSCILLOSCOPE_BUFFER_SIZE) {
 			for (auto i = 0; i < 4; i++) {
 				if (probes[i]) {
-					sendProbeData(i);
+					sendData(i);
 				}
 			}
 
@@ -72,10 +72,10 @@ void Oscilloscope::process(Context* context) {
 
 
 //
-//	Oscilloscope::sendProbeData
+//	Oscilloscope::sendData
 //
 
-void Oscilloscope::sendProbeData(int probe) {
+void Oscilloscope::sendData(int probe) {
 	// construct midi message
 	struct {
 		uint8_t start;

@@ -48,8 +48,12 @@ void setup() {
 	// setup midi event handling
 	usbMIDI.setHandleSystemExclusive([](uint8_t* data, unsigned int size) {
 		if (data[0] == 0xf0 && data[1] == MIDI_VENDOR_ID) {
+			// handle monitoring requests
+			if (data[2] == MIDI_REQUEST_MONITOR) {
+				context.monitor->midiEvent(data, size);
+
 			// handle oscilloscope requests
-			if (data[2] == MIDI_REQUEST_OSCILLOSCOPE) {
+		} else if (data[2] == MIDI_REQUEST_OSCILLOSCOPE) {
 				oscilloscope.midiEvent(data, size);
 
 			} else {

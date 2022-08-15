@@ -11,7 +11,8 @@
 
 class Kit {
 	constructor(monitor) {
-		this.monitor = new Monitor();
+		// track monitor
+		this.monitor = monitor;
 
 		// create an empty kit
 		this.clear();
@@ -28,14 +29,6 @@ class Kit {
 		removeAllChildren("pad-bar");
 		removeAllChildren("pad-type");
 		removeAllChildren("pad-curve");
-
-		// clear the monitor
-		this.monitor.clear();
-	}
-
-	// specify sampling rate
-	setSamplingRate(samplingRate) {
-		this.monitor.setSamplingRate(samplingRate);
 	}
 
 	// specify sensor count
@@ -69,12 +62,11 @@ class Kit {
 		pd.setAttribute("type", "radio");
 		pd.setAttribute("name", "pad-selector");
 		pd.setAttribute("class", "btn-check");
-		pd.checked = pad.id == 0;
+		pd.checked = pad.id == 1;
 
 		// add callback to activate pad
 		pd.addEventListener("change", function(event) {
 			// switch to selected pad
-			var pad = this.pads[event.target.getAttribute("data-id")];
 			pad.activate();
 			this.monitor.setPad(pad);
 		}.bind(this));
@@ -83,17 +75,12 @@ class Kit {
 		var label = bar.appendChild(document.createElement("label"));
 		label.setAttribute("for", `pad${pad.id}`);
 		label.setAttribute("class", "btn btn-outline-primary");
-		label.appendChild(document.createTextNode(`${pad.id + 1}`));
+		label.appendChild(document.createTextNode(pad.id));
 
 		// activate pad if it's the first one
-		if (this.pads.length == 1) {
+		if (pad.id == 1) {
 			pad.activate();
 			this.monitor.setPad(pad);
 		}
-	}
-
-	// handle a new monitor signal
-	handleMonitor(probe, values) {
-			this.monitor.setProbe(probe, values);
 	}
 }
