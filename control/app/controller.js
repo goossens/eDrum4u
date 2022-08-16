@@ -25,164 +25,97 @@ class Controller {
 
 		setTimeout(function() {
 			// setup UI
-			this.setupTabs();
-			this.setupRanges();
+			setupTabs(this.onTabChange.bind(this));
+			setupRanges();
 
 			// create new objects
+			this.midi = new Midi(this.onMidiEvent.bind(this));
 			this.oscilloscope = new Oscilloscope();
 			this.monitor = new Monitor();
-			this.kit = new Kit(this.monitor);
-
-			// start midi engine
-			this.setupMidi();
 	  }.bind(this), 1500);
+
+	  // cleasr our data
+	  this.clear();
 	}
 
-	// configure tab switching callbacks
-	setupTabs() {
-		// handle tab changes
-		document.querySelectorAll("button[data-bs-toggle='tab']").forEach(function(button) {
-			button.addEventListener("shown.bs.tab", function(event) {
-				event.target.classList.remove("text-light");
-				event.relatedTarget.classList.add("text-light");
-			});
-		});
+	// clear the UI
+	clear() {
+		// remove all information
+		this.types = [];
+		this.curves = [];
+		this.pads = [];
+	}
 
-		// capture tab events
-		document.getElementById("scope-tab").addEventListener("shown.bs.tab", function(event) {
+	clearUI() {
+		// also clear data
+		this.clear();
+
+		// clear the UI
+		removeAllChildren("pad-bar");
+		removeAllChildren("pad-type");
+		removeAllChildren("pad-curve");
+
+		this.monitor.clear();
+		this.oscilloscope.clear();
+	}
+
+	// handle tab changes
+	onTabChange(event, tab) {
+		if (event == "shown" && tab == "scope-tab") {
 			this.oscilloscope.show();
-		}.bind(this), true);
 
-		document.getElementById("scope-tab").addEventListener("hidden.bs.tab", function(event) {
+		} else if (event == "hidden" && tab == "scope-tab") {
 			this.oscilloscope.hide();
-		}.bind(this), true);
-	}
-
-	// configure range tooltips
-	setupRanges() {
-		// create tooltops for each slider
-		document.querySelectorAll("input[type='range']").forEach(function(range) {
-			// we must have a title otherwise a tooltip will not be xreated
-			range.setAttribute("title", "0");
-
-			// respond to slider changes
-			range.addEventListener("input", function(event) {
-				bootstrap.Tooltip.getInstance(range).setContent({ ".tooltip-inner": range.value });
-			});
-
-			// update tooltip when popped up
-			range.addEventListener("show.bs.tooltip", function(event) {
-				bootstrap.Tooltip.getInstance(range).setContent({ ".tooltip-inner": range.value });
-			});
-
-			// create the tooltip
-			return bootstrap.Tooltip.getOrCreateInstance(range, {
-				animation: false,
-				trigger: "hover",
-				placement: "left",
-				offset: function() {
-					// move tooltip based on slider value
-					var offset = (range.offsetWidth - 16) * (range.value - range.min) / range.max - 5;
-					return [0, -offset];
-				}
-			});
-		});
-	}
-
-	// initialize midi connection
-	setupMidi() {
-		// setup listeners for midi port events
-		WebMidi.addListener("connected", this.onMidiConnect.bind(this));
-		WebMidi.addListener("disconnected", this.onMidiDisconnect.bind(this));
-
-		// enable midi library
-		WebMidi.enable({
-			sysex: true
-
-		}).catch(function(err) {
-			alert("Can't enable midi. Error:\n\n", err);
-		});
-	}
-
-	// handle new midi interface
-	onMidiConnect(event) {
-		// ignore other midi ports and devices
-		if (event.port.name == "eDrum4u") {
-			// track ports
-			if (event.port.type == "input") {
-				this.midiIn = event.port;
-				this.midiIn.addListener("sysex", this.onMidiEvent.bind(this));
-
-			} else {
-				this.midiOut = event.port;
-			}
-
-			// if we have both input and output ports, we get get the configuration
-			if (this.midiIn && this.midiOut) {
-				this.midiOut.sendSysex(MIDI_VENDOR_ID, [MIDI_REQUEST_CONFIG]);
-			}
-		}
-	}
-
-	// handle loss of midi interface
-	onMidiDisconnect(event) {
-		// ignore other midi ports and devices
-		if (event.port.name == "eDrum4u") {
-			// diasble tool by showing splash screen
-			if (this.midiIn && this.midiOut) {
-				this.kit.clear();
-				this.monitor.clear();
-				this.oscilloscope.clear();
-				showModal("splash");
-			}
-
-			// track ports
-			if (event.port.type == "input") {
-				this.midiIn.removeListener("sysex");
-				this.midiIn = null;
-
-			} else {
-				this.midiOut = null;
-			}
 		}
 	}
 
 	// handle midi events
 	onMidiEvent(event) {
-		// only process sysex events that pertain to us
-		var msg = event.message.data;
-		var header = unpack(midiHeaderLayout, msg);
+		if (event.type == "connected") {
+			this.midi.sendSysex(MIDI_VENDOR_ID, [MIDI_REQUEST_CONFIG]);
 
-		if (header.start == 0xf0 && header.vendor == MIDI_VENDOR_ID) {
-			if (header.command == MIDI_RECEIVE_CONFIG) {
-				// update the about tab
-				this.updateConfiguration(unpack(midiConfigurationLayout, msg));
+		} else if (event.type == "disconnected") {
+			// we lost the module, go back into a holding pattern
+			this.clearUI();
+			showModal("splash");
 
-			// ignore other messages if versions don't match
-			} else if (this.versionMatch) {
-				if (header.command == MIDI_RECEIVE_TYPE) {
-					// add a pad type to the list
-					this.kit.addPadType(unpack(midiPropertiesLayout, msg));
+		} else if (event.type == "sysex") {
+			// handle sysex events
+			var msg = event.message.data;
+			var header = unpack(midiHeaderLayout, msg);
 
-				} else if (header.command == MIDI_RECEIVE_CURVE) {
-					// add a curve type to the list
-					this.kit.addPadCurve(unpack(midiCurveLayout, msg));
+			// only process sysex events that pertain to us
+			if (header.start == 0xf0 && header.vendor == MIDI_VENDOR_ID) {
+				if (header.command == MIDI_RECEIVE_CONFIG) {
+					// update the about tab
+					this.updateConfiguration(unpack(midiConfigurationLayout, msg));
 
-				} else if (header.command == MIDI_RECEIVE_PAD) {
-					// add a pad definition
-					this.kit.addPad(new Pad(unpack(midiPropertiesLayout, msg)));
+				// ignore other messages if versions don't match
+				} else if (this.versionMatch) {
+					if (header.command == MIDI_RECEIVE_TYPE) {
+						// add a new pad type
+						this.addPadType(unpack(midiPropertiesLayout, msg));
 
-				} else if (header.command == MIDI_RECEIVE_READY) {
-					// now hide the splash screen
-					hideModal("splash");
+					} else if (header.command == MIDI_RECEIVE_CURVE) {
+						// add a new pad curve
+						this.addPadCurve(unpack(midiCurveLayout, msg));
 
-				} else if (header.command == MIDI_RECEIVE_MONITOR) {
-					var message = unpack(midiMonitorLayout, msg);
-					this.monitor.setChannel(message.channel, message.values);
+					} else if (header.command == MIDI_RECEIVE_PAD) {
+						// add a pad definition
+						this.addPad(new Pad(unpack(midiPropertiesLayout, msg)));
 
-				} else if (header.command == MIDI_RECEIVE_OSCILLOSCOPE) {
-					var message = unpack(midiOscilloscopeLayout, msg);
-					this.oscilloscope.setProbe(message.probe, message.values);
+					} else if (header.command == MIDI_RECEIVE_READY) {
+						// now hide the splash screen
+						hideModal("splash");
+
+					} else if (header.command == MIDI_RECEIVE_MONITOR) {
+						var message = unpack(midiMonitorLayout, msg);
+						this.monitor.setChannel(message.channel, message.values);
+
+					} else if (header.command == MIDI_RECEIVE_OSCILLOSCOPE) {
+						var message = unpack(midiOscilloscopeLayout, msg);
+						this.oscilloscope.setProbe(message.probe, message.values);
+					}
 				}
 			}
 		}
@@ -207,16 +140,67 @@ class Controller {
 			document.getElementById("sensor-count").value = msg.sensors;
 			document.getElementById("sampling-rate").value = msg.samplingRate * 1000;
 
-			// pass information to kit, monitor and oscilloscope
-			this.kit.setSensorCount(msg.sensors);
-
-			this.monitor.setMidi(this.midiOut);
+			// pass information to monitor and oscilloscope
+			this.monitor.setMidi(this.midi);
 			this.monitor.setSamplingRate(msg.samplingRate);
 
-			this.oscilloscope.setMidi(this.midiOut);
+			this.oscilloscope.setMidi(this.midi);
 			this.oscilloscope.setSamplingRate(msg.samplingRate);
 			this.oscilloscope.setSensorCount(msg.sensors);
 		}
+	}
+
+	// add a predefined pad type
+	addPadType(type) {
+		// track new type and add it to UI
+		this.types.push(type);
+		addSelectorOption("pad-type", type.id, type.name);
+	}
+
+	// add a new velocity curve
+	addPadCurve(curve) {
+		// track new curve and add it to UI
+		this.curves.push(curve);
+		addSelectorOption("pad-curve", curve.id, curve.name);
+	}
+
+	// add a new pad based on provided properties
+	addPad(pad) {
+		// track new pad
+		this.pads.push(pad);
+
+		// add pad radio button to UI
+		const bar = document.getElementById("pad-bar");
+		const pd = bar.appendChild(document.createElement("input"));
+		pd.setAttribute("data-id", pad.id);
+		pd.setAttribute("id", `pad${pad.id}`);
+		pd.setAttribute("type", "radio");
+		pd.setAttribute("name", "pad-selector");
+		pd.setAttribute("class", "btn-check");
+		pd.checked = pad.id == 1;
+
+		// add callback to activate pad
+		pd.addEventListener("change", function(event) {
+			// switch to selected pad
+			activatePad(pad);
+		}.bind(this));
+
+		// add label for pad
+		var label = bar.appendChild(document.createElement("label"));
+		label.setAttribute("for", `pad${pad.id}`);
+		label.setAttribute("class", "btn btn-outline-primary");
+		label.appendChild(document.createTextNode(pad.id));
+
+		// activate pad if it's the first one
+		if (pad.id == 1) {
+			activatePad(pad);
+		}
+	}
+
+	// activate the specified pad
+	activatePad(pad) {
+		pad.activate();
+		this.monitor.setPad(pad);
 	}
 }
 

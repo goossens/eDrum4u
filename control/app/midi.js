@@ -102,3 +102,72 @@ const midiOscilloscopeLayout = {
 	probe: "b",
 	values: "v"
 };
+
+
+//
+//	Midi class
+//
+
+class Midi {
+	constructor(callback) {
+		// remember callback
+		this.callback = callback;
+
+		// setup listeners for midi port events
+		WebMidi.addListener("connected", this.onMidiConnect.bind(this));
+		WebMidi.addListener("disconnected", this.onMidiDisconnect.bind(this));
+
+		// enable midi library
+		WebMidi.enable({
+			sysex: true
+
+		}).catch(function(err) {
+			alert("Can't enable midi. Error:\n\n", err);
+		});
+	}
+
+	// handle new midi interface
+	onMidiConnect(event) {
+		// ignore other midi ports and devices
+		if (event.port.name == "eDrum4u") {
+			// track ports
+			if (event.port.type == "input") {
+				this.midiIn = event.port;
+				this.midiIn.addListener("sysex", this.callback);
+
+			} else {
+				this.midiOut = event.port;
+			}
+
+			// activate callback when we have both ports
+			if (this.midiIn && this.midiOut) {
+				this.callback(event);
+			}
+		}
+	}
+
+	// handle loss of midi interface
+	onMidiDisconnect(event) {
+		// ignore other midi ports and devices
+		if (event.port.name == "eDrum4u") {
+			// activate callback to report connection loss
+			if (this.midiIn && this.midiOut) {
+				this.callback(event);
+			}
+
+			// track ports
+			if (event.port.type == "input") {
+				this.midiIn.removeListener("sysex");
+				this.midiIn = null;
+
+			} else {
+				this.midiOut = null;
+			}
+		}
+	}
+
+	// send sysex message to module
+	sendSysex(identification, data) {
+		this.midiOut.sendSysex(identification, data);
+	}
+}
