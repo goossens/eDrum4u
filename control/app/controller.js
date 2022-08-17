@@ -15,6 +15,24 @@ const VERSION_PATCH = 1;
 
 
 //
+//	Globals
+//
+
+const padInputFields = [
+	"pad-type",
+	"pad-name",
+	"pad-curve",
+	"pad-scan-time",
+	"pad-mask-time",
+	"pad-retrigger-time",
+	"pad-head-threshold",
+	"pad-head-sensitivity",
+	"pad-rim-threshold",
+	"pad-rim-sensitivity"
+];
+
+
+//
 //	Controller class
 //
 
@@ -28,10 +46,15 @@ class Controller {
 			setupTabs(this.onTabChange.bind(this));
 			setupRanges();
 
+			for (const field of padInputFields) {
+				document.getElementById(field).addEventListener("input", this.updatePad.bind(this));
+			}
+
 			// create new objects
 			this.midi = new Midi(this.onMidiEvent.bind(this));
 			this.oscilloscope = new Oscilloscope();
 			this.monitor = new Monitor();
+
 	  }.bind(this), 1500);
 
 	  // cleasr our data
@@ -181,8 +204,7 @@ class Controller {
 
 		// add callback to activate pad
 		pd.addEventListener("change", function(event) {
-			// switch to selected pad
-			activatePad(pad);
+			this.activatePad(pad);
 		}.bind(this));
 
 		// add label for pad
@@ -193,14 +215,30 @@ class Controller {
 
 		// activate pad if it's the first one
 		if (pad.id == 1) {
-			activatePad(pad);
+			this.activatePad(pad);
 		}
+
+		// add callback to handle pad changes
+		pad.addListener("change", this.onPadChange.bind(this));
+
 	}
 
 	// activate the specified pad
 	activatePad(pad) {
+		this.pad = pad;
 		pad.activate();
 		this.monitor.setPad(pad);
+	}
+
+	// update the current pad
+	updatePad() {
+		this.pad.update();
+	}
+
+	// handle changes to pad properties
+	onPadChange(event) {
+		// tell monitor to redraw itself
+		this.monitor.render();
 	}
 }
 

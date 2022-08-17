@@ -206,6 +206,33 @@ function unpack(layout, buffer) {
 
 
 //
+//	Observable class
+//
+
+class Observable {
+	constructor() {
+		this.events = {};
+	}
+
+	// add a new callback
+	addListener(event, callback) {
+		if (!this.events[event]) {
+			this.events[event] = [];
+		}
+
+		this.events[event].push(callback);
+	}
+
+	// emit the specified event to all callbacks
+	emit(event, data) {
+		for (const callback of this.events[event]) {
+			callback(data);
+		}
+	}
+}
+
+
+//
 //	Scale class
 //
 
