@@ -225,8 +225,10 @@ class Observable {
 
 	// emit the specified event to all callbacks
 	emit(event, data) {
-		for (const callback of this.events[event]) {
-			callback(data);
+		if (this.events[event]) {
+			for (const callback of this.events[event]) {
+				callback(data);
+			}
 		}
 	}
 }

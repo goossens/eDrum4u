@@ -51,14 +51,18 @@ class Controller {
 			}
 
 			// create new objects
-			this.midi = new Midi(this.onMidiEvent.bind(this));
+			this.midi = new Midi();
 			this.oscilloscope = new Oscilloscope();
 			this.monitor = new Monitor();
 
-	  }.bind(this), 1500);
+			// add midi event listeners
+			this.midi.addListener("connected", this.onMidiConnect.bind(this));
+			this.midi.addListener("disconnected", this.onMidiDisconnect.bind(this));
+			this.midi.addListener("sysex", this.onMidiSysex.bind(this));
+		}.bind(this), 1500);
 
-	  // cleasr our data
-	  this.clear();
+		// clear our data
+		this.clear();
 	}
 
 	// clear the UI
@@ -92,53 +96,53 @@ class Controller {
 		}
 	}
 
-	// handle midi events
-	onMidiEvent(event) {
-		if (event.type == "connected") {
-			this.midi.sendSysex(MIDI_VENDOR_ID, [MIDI_REQUEST_CONFIG]);
+	// handle midi connection events
+	onMidiConnect(event) {
+		this.midi.sendSysex(MIDI_VENDOR_ID, [MIDI_REQUEST_CONFIG]);
+	}
 
-		} else if (event.type == "disconnected") {
-			// we lost the module, go back into a holding pattern
-			this.clearUI();
-			showModal("splash");
+	// handle midi disconnection events
+	onMidiDisconnect(event) {
+		this.clearUI();
+		showModal("splash");
+	}
 
-		} else if (event.type == "sysex") {
-			// handle sysex events
-			var msg = event.message.data;
-			var header = unpack(midiHeaderLayout, msg);
+	// handle midi sysex events
+	onMidiSysex(event) {
+		var msg = event.message.data;
+		var header = unpack(midiHeaderLayout, msg);
 
-			// only process sysex events that pertain to us
-			if (header.start == 0xf0 && header.vendor == MIDI_VENDOR_ID) {
-				if (header.command == MIDI_RECEIVE_CONFIG) {
-					// update the about tab
-					this.updateConfiguration(unpack(midiConfigurationLayout, msg));
+		// only process sysex events that pertain to us
+		if (header.start == 0xf0 && header.vendor == MIDI_VENDOR_ID) {
+			if (header.command == MIDI_RECEIVE_CONFIG) {
+				// update the about tab
+				this.updateConfiguration(unpack(midiConfigurationLayout, msg));
 
-				// ignore other messages if versions don't match
-				} else if (this.versionMatch) {
-					if (header.command == MIDI_RECEIVE_TYPE) {
-						// add a new pad type
-						this.addPadType(unpack(midiPropertiesLayout, msg));
+			// ignore other messages if versions don't match
+			} else if (this.versionMatch) {
+				if (header.command == MIDI_RECEIVE_TYPE) {
+					// add a new pad type
+					this.addPadType(unpack(midiPropertiesLayout, msg));
 
-					} else if (header.command == MIDI_RECEIVE_CURVE) {
-						// add a new pad curve
-						this.addPadCurve(unpack(midiCurveLayout, msg));
+				} else if (header.command == MIDI_RECEIVE_CURVE) {
+					// add a new pad curve
+					this.addPadCurve(unpack(midiCurveLayout, msg));
 
-					} else if (header.command == MIDI_RECEIVE_PAD) {
-						// add a pad definition
-						this.addPad(new Pad(unpack(midiPropertiesLayout, msg)));
+				} else if (header.command == MIDI_RECEIVE_PAD) {
+					// add a pad definition
+					this.addPad(new Pad(unpack(midiPropertiesLayout, msg)));
 
-					} else if (header.command == MIDI_RECEIVE_READY) {
-						// now hide the splash screen
-						hideModal("splash");
+				} else if (header.command == MIDI_RECEIVE_READY) {
+					// now hide the splash screen
+					hideModal("splash");
 
-					} else if (header.command == MIDI_RECEIVE_MONITOR) {
-						var message = unpack(midiMonitorLayout, msg);
-						this.monitor.setChannel(message.channel, message.values);
+				} else if (header.command == MIDI_RECEIVE_MONITOR) {
+					var message = unpack(midiMonitorLayout, msg);
+					this.monitor.setChannel(message.channel, message.values);
 
-					} else if (header.command == MIDI_RECEIVE_OSCILLOSCOPE) {
-						var message = unpack(midiOscilloscopeLayout, msg);
-						this.oscilloscope.setProbe(message.probe, message.values);
-					}
+				} else if (header.command == MIDI_RECEIVE_OSCILLOSCOPE) {
+					var message = unpack(midiOscilloscopeLayout, msg);
+					this.oscilloscope.setProbe(message.probe, message.values);
 				}
 			}
 		}

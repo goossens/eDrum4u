@@ -108,10 +108,9 @@ const midiOscilloscopeLayout = {
 //	Midi class
 //
 
-class Midi {
-	constructor(callback) {
-		// remember callback
-		this.callback = callback;
+class Midi extends Observable {
+	constructor() {
+		super();
 
 		// setup listeners for midi port events
 		WebMidi.addListener("connected", this.onMidiConnect.bind(this));
@@ -133,15 +132,15 @@ class Midi {
 			// track ports
 			if (event.port.type == "input") {
 				this.midiIn = event.port;
-				this.midiIn.addListener("sysex", this.callback);
+				this.midiIn.addListener("sysex", this.onMidiEvent.bind(this));
 
 			} else {
 				this.midiOut = event.port;
 			}
 
-			// activate callback when we have both ports
+			// pass event when we have both ports
 			if (this.midiIn && this.midiOut) {
-				this.callback(event);
+				this.emit(event.type, event);
 			}
 		}
 	}
@@ -150,20 +149,25 @@ class Midi {
 	onMidiDisconnect(event) {
 		// ignore other midi ports and devices
 		if (event.port.name == "eDrum4u") {
-			// activate callback to report connection loss
+			// pass event to report connection loss
 			if (this.midiIn && this.midiOut) {
-				this.callback(event);
+				this.emit(event.type, event);
 			}
 
 			// track ports
 			if (event.port.type == "input") {
-				this.midiIn.removeListener("sysex");
+				this.midiIn.removeListener();
 				this.midiIn = null;
 
 			} else {
 				this.midiOut = null;
 			}
 		}
+	}
+
+	// handle midi messages
+	onMidiEvent(event) {
+		this.emit(event.type, event);
 	}
 
 	// send sysex message to module
