@@ -97,7 +97,7 @@ class Oscilloscope {
 	requestData() {
 		this.midi.sendSysex(
 			MIDI_VENDOR_ID, [
-				MIDI_REQUEST_OSCILLOSCOPE,
+				MIDI_OSCILLOSCOPE_REQUEST,
 				this.visible ? 1 : 0,
 				this.probes[0],
 				this.probes[1],
@@ -127,6 +127,24 @@ class Oscilloscope {
 				addSelectorOption(selector, i, "Sensor " + i);
 			}
 		}
+	}
+
+	// receive a new data stream
+	start(msg) {
+		this.incoming = new Array(msg.size);
+	}
+
+	// receive data on stream stream
+	data(msg) {
+		for (var i = 0; i < msg.data.length; i++) {
+			this.incoming[msg.offset + i] = msg.data[i];
+		}
+	}
+
+	// we now have all the data
+	end(msg) {
+		this.values[msg.probe - 1] = this.incoming;
+		this.render();
 	}
 
 	// accept a new set of probe values

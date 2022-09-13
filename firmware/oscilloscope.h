@@ -23,6 +23,7 @@
 //
 
 #define OSCILLOSCOPE_BUFFER_SIZE (SAMPLING_RATE / 1000 * 100)
+#define OSCILLOSCOPE_CHUNK_SIZE 200
 
 
 //
@@ -39,7 +40,8 @@ public:
 
 private:
 	// send probe data to control app
-	void sendData(int probe);
+	void sendProbe(int probe);
+	void sendData(int probe, int start, int size);
 
 	// flags
 	int active = false;

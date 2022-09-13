@@ -140,9 +140,14 @@ class Controller {
 					var message = unpack(midiMonitorLayout, msg);
 					this.monitor.setChannel(message.channel, message.values);
 
-				} else if (header.command == MIDI_RECEIVE_OSCILLOSCOPE) {
-					var message = unpack(midiOscilloscopeLayout, msg);
-					this.oscilloscope.setProbe(message.probe, message.values);
+				} else if (header.command == MIDI_OSCILLOSCOPE_START) {
+					this.oscilloscope.start(unpack(midiOscilloscopeStartLayout, msg));
+
+				} else if (header.command == MIDI_OSCILLOSCOPE_DATA) {
+					this.oscilloscope.data(unpack(midiOscilloscopeDataLayout, msg));
+
+				} else if (header.command == MIDI_OSCILLOSCOPE_END) {
+					this.oscilloscope.end(unpack(midiOscilloscopeEndLayout, msg));
 				}
 			}
 		}

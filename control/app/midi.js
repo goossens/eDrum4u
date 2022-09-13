@@ -20,8 +20,10 @@ const MIDI_RECEIVE_READY = 6;
 const MIDI_UPDATE_PAD = 7;
 const MIDI_REQUEST_MONITOR = 8;
 const MIDI_RECEIVE_MONITOR = 9;
-const MIDI_REQUEST_OSCILLOSCOPE= 10;
-const MIDI_RECEIVE_OSCILLOSCOPE = 11;
+const MIDI_OSCILLOSCOPE_REQUEST = 10;
+const MIDI_OSCILLOSCOPE_START = 11;
+const MIDI_OSCILLOSCOPE_DATA = 12;
+const MIDI_OSCILLOSCOPE_END = 13;
 
 
 //
@@ -54,7 +56,7 @@ const midiCurveLayout = {
 	vendor: "b",
 	command: "b",
 	id: "b",
-	name: "s9",
+	name: "t9",
 	end: "b"
 };
 
@@ -66,7 +68,7 @@ const midiPropertiesLayout = {
 	id: "b",
 	type: "b",
 	zones: "b",
-	name: "s13",
+	name: "t13",
 
 	scanTime: "b",
 	maskTime: "b",
@@ -95,13 +97,106 @@ const midiMonitorLayout = {
 	values: "v"
 };
 
-const midiOscilloscopeLayout = {
+const midiOscilloscopeStartLayout = {
 	start: "b",
 	vendor: "b",
 	command: "b",
 	probe: "b",
-	values: "v"
+	size: "w",
+	end: "b"
 };
+
+const midiOscilloscopeDataLayout = {
+	start: "b",
+	vendor: "b",
+	command: "b",
+	probe: "b",
+	offset: "w",
+	data: "v"
+};
+
+const midiOscilloscopeEndLayout = {
+	start: "b",
+	vendor: "b",
+	command: "b",
+	probe: "b",
+	end: "b"
+};
+
+
+
+
+//
+//	Pack object attributes into buffer
+//
+
+function pack(layout, object) {
+
+}
+
+
+//
+//	Unpack buffer into object
+//
+
+function unpack(layout, buffer) {
+	var result = {};
+	var offset = 0;
+
+	// process all fields defined in layout
+	for (field in layout) {
+		var type = layout[field];
+
+		// handle byte fields
+		if (type == "b") {
+			result[field] = buffer[offset++];
+
+		// handle word fields
+		} else if (type[0] == "w") {
+			var msb = buffer[offset++];
+			var lsb = buffer[offset++];
+			result[field] = (msb << 7) | lsb;
+
+		// handle text fields
+	} else if (type[0] == "t") {
+			var size = parseInt(type.substr(1));
+			var string = "";
+
+			for (var i = 0; i < size; i++) {
+				var byte = buffer[offset++];
+
+				if (byte) {
+					string += String.fromCharCode(byte);
+				}
+			}
+
+			result[field] = string;
+
+		// handle variable length array of 14 bit integers
+		} else if (type[0] == "v") {
+			var sizeMsb = buffer[offset++];
+			var sizelsb = buffer[offset++];
+			var size = (sizeMsb << 7) | sizelsb;
+
+			var values = [];
+
+			for (var i = 0; i < size; i++) {
+				var valueMsb = buffer[offset++];
+				var valuelsb = buffer[offset++];
+				var value = (valueMsb << 7) | valuelsb;
+				values.push(value - 1024);
+			}
+
+			result[field] = values;
+
+		} else {
+			alert("Invalid type in unpack");
+		}
+	}
+
+	// return result
+	return result;
+}
 
 
 //

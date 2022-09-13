@@ -53,7 +53,7 @@ void setup() {
 				context.monitor->midiEvent(data, size);
 
 			// handle oscilloscope requests
-		} else if (data[2] == MIDI_REQUEST_OSCILLOSCOPE) {
+		} else if (data[2] == MIDI_OSCILLOSCOPE_REQUEST) {
 				oscilloscope.midiEvent(data, size);
 
 			} else {
