@@ -10,6 +10,6 @@
   "author": "Johan A. Goossens",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^20.0.2"
+    "electron": "^20.1.3"
   }
 }
