@@ -18,12 +18,14 @@ const MIDI_RECEIVE_CURVE = 4;
 const MIDI_RECEIVE_PAD = 5;
 const MIDI_RECEIVE_READY = 6;
 const MIDI_UPDATE_PAD = 7;
-const MIDI_REQUEST_MONITOR = 8;
-const MIDI_RECEIVE_MONITOR = 9;
-const MIDI_OSCILLOSCOPE_REQUEST = 10;
-const MIDI_OSCILLOSCOPE_START = 11;
-const MIDI_OSCILLOSCOPE_DATA = 12;
-const MIDI_OSCILLOSCOPE_END = 13;
+const MIDI_MONITOR_REQUEST = 8;
+const MIDI_MONITOR_START = 9;
+const MIDI_MONITOR_DATA = 10;
+const MIDI_MONITOR_END = 11;
+const MIDI_OSCILLOSCOPE_REQUEST = 12;
+const MIDI_OSCILLOSCOPE_START = 13;
+const MIDI_OSCILLOSCOPE_DATA = 14;
+const MIDI_OSCILLOSCOPE_END = 15;
 
 
 //
@@ -31,13 +33,13 @@ const MIDI_OSCILLOSCOPE_END = 13;
 //
 
 const midiHeaderLayout = {
-	start: "b",
+	start: "s",
 	vendor: "b",
 	command: "b"
 };
 
 const midiConfigurationLayout = {
-	start: "b",
+	start: "s",
 	vendor: "b",
 	command: "b",
 
@@ -48,20 +50,20 @@ const midiConfigurationLayout = {
 	pads: "b",
 	sensors: "b",
 
-	end: "b"
+	end: "e"
 };
 
 const midiCurveLayout = {
-	start: "b",
+	start: "s",
 	vendor: "b",
 	command: "b",
 	id: "b",
 	name: "t9",
-	end: "b"
+	end: "e"
 };
 
 const midiPropertiesLayout = {
-	start: "b",
+	start: "s",
 	vendor: "b",
 	command: "b",
 
@@ -85,45 +87,65 @@ const midiPropertiesLayout = {
 	rimThreshold: "b",
 	rimNote: "b",
 
-	end: "b"
+	end: "e"
 };
 
-const midiMonitorLayout = {
-	start: "b",
+const midiMonitorStartLayout = {
+	start: "s",
 	vendor: "b",
 	command: "b",
 	pad: "b",
 	channel: "b",
-	values: "v"
+	size: "w",
+	end: "e"
+};
+
+const midiMonitorDataLayout = {
+	start: "s",
+	vendor: "b",
+	command: "b",
+	pad: "b",
+	channel: "b",
+	offset: "w",
+	data: "v",
+	end: "e"
+};
+
+const midiMonitorEndLayout = {
+	start: "s",
+	vendor: "b",
+	command: "b",
+	pad: "b",
+	channel: "b",
+	end: "e"
 };
 
 const midiOscilloscopeStartLayout = {
-	start: "b",
+	start: "s",
 	vendor: "b",
 	command: "b",
 	probe: "b",
 	size: "w",
-	end: "b"
+	end: "e"
 };
 
 const midiOscilloscopeDataLayout = {
-	start: "b",
+	start: "s",
 	vendor: "b",
 	command: "b",
 	probe: "b",
 	offset: "w",
-	data: "v"
+	data: "v",
+	end: "e"
 };
 
 const midiOscilloscopeEndLayout = {
-	start: "b",
+	start: "s",
 	vendor: "b",
 	command: "b",
 	probe: "b",
-	end: "b"
+	end: "e"
 };
-
-
 
 
 //
@@ -147,8 +169,12 @@ function unpack(layout, buffer) {
 	for (field in layout) {
 		var type = layout[field];
 
+		// handle start/end of message fields
+		if (type == "s" || type == "e") {
+			offset++;
+
 		// handle byte fields
-		if (type == "b") {
+		} else if (type == "b") {
 			result[field] = buffer[offset++];
 
 		// handle word fields
@@ -158,7 +184,7 @@ function unpack(layout, buffer) {
 			result[field] = (msb << 7) | lsb;
 
 		// handle text fields
-	} else if (type[0] == "t") {
+		} else if (type[0] == "t") {
 			var size = parseInt(type.substr(1));
 			var string = "";
 

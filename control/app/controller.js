@@ -113,7 +113,7 @@ class Controller {
 		var header = unpack(midiHeaderLayout, msg);
 
 		// only process sysex events that pertain to us
-		if (header.start == 0xf0 && header.vendor == MIDI_VENDOR_ID) {
+		if (header.vendor == MIDI_VENDOR_ID) {
 			if (header.command == MIDI_RECEIVE_CONFIG) {
 				// update the about tab
 				this.updateConfiguration(unpack(midiConfigurationLayout, msg));
@@ -136,9 +136,14 @@ class Controller {
 					// now hide the splash screen
 					hideModal("splash");
 
-				} else if (header.command == MIDI_RECEIVE_MONITOR) {
-					var message = unpack(midiMonitorLayout, msg);
-					this.monitor.setChannel(message.channel, message.values);
+				} else if (header.command == MIDI_MONITOR_START) {
+					this.monitor.start(unpack(midiMonitorStartLayout, msg));
+
+				} else if (header.command == MIDI_MONITOR_DATA) {
+					this.monitor.data(unpack(midiMonitorDataLayout, msg));
+
+				} else if (header.command == MIDI_MONITOR_END) {
+					this.monitor.end(unpack(midiMonitorEndLayout, msg));
 
 				} else if (header.command == MIDI_OSCILLOSCOPE_START) {
 					this.oscilloscope.start(unpack(midiOscilloscopeStartLayout, msg));

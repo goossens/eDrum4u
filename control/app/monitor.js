@@ -98,7 +98,7 @@ class Monitor {
 	requestData() {
 		this.midi.sendSysex(
 			MIDI_VENDOR_ID, [
-				MIDI_REQUEST_MONITOR,
+				MIDI_MONITOR_REQUEST,
 				this.visible ? 1 : 0,
 				this.pad.id]);
 	}
@@ -130,12 +130,21 @@ class Monitor {
 		}
 	}
 
-	// accept a new set of channel values
-	setChannel(channel, values) {
-		// set the correct channel
-		this.values[channel - 1] = values;
+	// receive a new monitoring stream
+	start(msg) {
+		this.incoming = new Array(msg.size);
+	}
 
-		// refresh screen
+	// receive data on monitoring stream
+	data(msg) {
+		for (var i = 0; i < msg.data.length; i++) {
+			this.incoming[msg.offset + i] = msg.data[i];
+		}
+	}
+
+	// we now have all the monitoring data
+	end(msg) {
+		this.values[msg.channel - 1] = this.incoming;
 		this.render();
 	}
 

@@ -29,6 +29,8 @@ static volatile bool ready = true;
 static Context context;
 static Oscilloscope oscilloscope;
 
+static int counter = 1;
+
 
 //
 //	Initialize firmware
@@ -49,7 +51,7 @@ void setup() {
 	usbMIDI.setHandleSystemExclusive([](uint8_t* data, unsigned int size) {
 		if (data[0] == 0xf0 && data[1] == MIDI_VENDOR_ID) {
 			// handle monitoring requests
-			if (data[2] == MIDI_REQUEST_MONITOR) {
+			if (data[2] == MIDI_MONITOR_REQUEST) {
 				context.monitor->midiEvent(data, size);
 
 			// handle oscilloscope requests
@@ -90,4 +92,9 @@ void loop() {
 	// process midi inputs
 	usbMIDI.read();
 	usbMIDI.send_now();
+
+	if ((++counter % 10000) == 0) {
+		Serial.println(counter);
+	}
+
 }

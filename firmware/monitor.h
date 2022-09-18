@@ -20,6 +20,7 @@
 //
 
 #define MONITOR_BUFFER_SIZE (SAMPLING_RATE / 1000 * 100)
+#define MONITOR_CHUNK_SIZE 50
 
 
 //
@@ -37,8 +38,9 @@ public:
 	void end(int pad);
 
 private:
-	// send data to control app
-	void sendData(int channel);
+	// send channel monitoring to control app
+	void sendChannel(int channel);
+	void sendData(int channel, int offset, int size);
 
 	// flags
 	int active = false;

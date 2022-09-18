@@ -20,7 +20,7 @@
 //
 
 void Monitor::midiEvent(uint8_t* data, unsigned int size) {
-	if (data[2] == MIDI_REQUEST_MONITOR) {
+	if (data[2] == MIDI_MONITOR_REQUEST) {
 		// store monitor settings
 		active = data[3];
 		pad = data[4];
@@ -73,7 +73,7 @@ void Monitor::end(int pd) {
 	if (capturing && pad == pd) {
 		// send data
 		for (auto i = 0; i < channels; i++) {
-			sendData(i);
+			sendChannel(i);
 		}
 
 		// reset monitor
@@ -83,11 +83,11 @@ void Monitor::end(int pd) {
 
 
 //
-//	Monitor::sendData
+//	Monitor::sendChannel
 //
 
-void Monitor::sendData(int channel) {
-	// create midi message
+void Monitor::sendChannel(int channel) {
+	// send start of monitoring message
 	struct {
 		uint8_t start;
 		uint8_t vendor;
@@ -96,30 +96,93 @@ void Monitor::sendData(int channel) {
 		uint8_t channel;
 		uint8_t sizeMsb;
 		uint8_t sizeLsb;
-		uint8_t values[MONITOR_BUFFER_SIZE * 2];
+		uint8_t end;
+	} startMsg = {
+		0xf0,
+		MIDI_VENDOR_ID,
+		MIDI_MONITOR_START,
+		(uint8_t) pad,
+		(uint8_t) (channel + 1),
+		(uint8_t) (p >> 7),
+		(uint8_t) (p & 0x7f),
+		0xf7
+	};
+
+	usbMIDI.sendSysEx(sizeof(startMsg), (uint8_t*) &startMsg, true);
+
+	// send each of the chunks
+	int start = 0;
+
+	while (start < p) {
+		int size = min(MONITOR_CHUNK_SIZE, p - start);
+		sendData(channel, start, size);
+		start += size;
+	}
+
+	// send end of monitoring message
+	struct {
+		uint8_t start;
+		uint8_t vendor;
+		uint8_t command;
+		uint8_t pad;
+		uint8_t channel;
+		uint8_t end;
+	} endMsg = {
+		0xf0,
+		MIDI_VENDOR_ID,
+		MIDI_MONITOR_END,
+		(uint8_t) pad,
+		(uint8_t) (channel + 1),
+		0xf7
+	};
+
+	usbMIDI.sendSysEx(sizeof(endMsg), (uint8_t*) &endMsg, true);
+}
+
+
+//
+//	Monitor::sendData
+//
+
+void Monitor::sendData(int channel, int offset, int size) {
+	// construct midi message
+	struct {
+		uint8_t start;
+		uint8_t vendor;
+		uint8_t command;
+		uint8_t pad;
+		uint8_t channel;
+		uint8_t offsetMsb;
+		uint8_t offsetLsb;
+		uint8_t sizeMsb;
+		uint8_t sizeLsb;
+		uint8_t values[2 * MONITOR_CHUNK_SIZE];
 		uint8_t end;
 	} msg;
 
 	msg.start = 0xf0;
 	msg.vendor = MIDI_VENDOR_ID;
-	msg.command = MIDI_SEND_MONITOR;
+	msg.command = MIDI_MONITOR_DATA;
 	msg.pad = pad;
 	msg.channel = channel + 1;
-	msg.sizeMsb = p >> 7;
-	msg.sizeLsb = p & 0x7f;
-	uint8_t* v = msg.values;
+	msg.offsetMsb = offset >> 7;
+	msg.offsetLsb = offset & 0x7f;
+	msg.sizeMsb = size >> 7;
+	msg.sizeLsb = size & 0x7f;
+	msg.end = 0xf7;
 
 	// make readings positive and split into 7-bit values
-	for (auto i = 0; i < p; i++) {
-		auto offsetValue = buffer[channel][i] + 1024;
+	uint8_t* v = msg.values;
+
+	for (auto i = 0; i < size; i++) {
+		auto offsetValue = buffer[channel][offset + i] + 1024;
 		*v++ = offsetValue >> 7;
 		*v++ = offsetValue & 0x7f;
 	}
 
-	// terminate variable length midi message
 	*v++ = 0xf7;
 
 	// send message
-	auto size = v - (uint8_t*) &msg;
-	usbMIDI.sendSysEx(size, (uint8_t*) &msg, true);
+	auto msgSize = v - (uint8_t*) &msg;
+	usbMIDI.sendSysEx(msgSize, (uint8_t*) &msg, true);
 }

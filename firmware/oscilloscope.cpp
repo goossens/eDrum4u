@@ -120,6 +120,7 @@ void Oscilloscope::sendProbe(int probe) {
 	};
 
 	usbMIDI.sendSysEx(sizeof(endMsg), (uint8_t*) &endMsg, true);
+	Serial.println("MIDI_OSCILLOSCOPE_END");
 }
 
 
@@ -127,15 +128,15 @@ void Oscilloscope::sendProbe(int probe) {
 //	Oscilloscope::sendData
 //
 
-void Oscilloscope::sendData(int probe, int start, int size) {
+void Oscilloscope::sendData(int probe, int offset, int size) {
 	// construct midi message
 	struct {
 		uint8_t start;
 		uint8_t vendor;
 		uint8_t command;
 		uint8_t probe;
-		uint8_t startMsb;
-		uint8_t startLsb;
+		uint8_t offsetMsb;
+		uint8_t offsetLsb;
 		uint8_t sizeMsb;
 		uint8_t sizeLsb;
 		uint8_t values[2 * OSCILLOSCOPE_CHUNK_SIZE];
@@ -146,8 +147,8 @@ void Oscilloscope::sendData(int probe, int start, int size) {
 	msg.vendor = MIDI_VENDOR_ID;
 	msg.command = MIDI_OSCILLOSCOPE_DATA;
 	msg.probe = probe + 1;
-	msg.startMsb = start >> 7;
-	msg.startLsb = start & 0x7f;
+	msg.offsetMsb = offset >> 7;
+	msg.offsetLsb = offset & 0x7f;
 	msg.sizeMsb = size >> 7;
 	msg.sizeLsb = size & 0x7f;
 	msg.end = 0xf7;
@@ -156,7 +157,7 @@ void Oscilloscope::sendData(int probe, int start, int size) {
 	uint8_t* v = msg.values;
 
 	for (auto i = 0; i < size; i++) {
-		auto offsetValue = buffer[probe][start + i] + 1024;
+		auto offsetValue = buffer[probe][offset + i] + 1024;
 		*v++ = offsetValue >> 7;
 		*v++ = offsetValue & 0x7f;
 	}
